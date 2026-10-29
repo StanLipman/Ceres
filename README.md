@@ -1,6 +1,6 @@
 # Ceres
 
-Ceres is a .NET language. This repository contains the code used to compile .crs files to the intermediate language of .NET.
+Ceres is a .NET language. This repository contains the code used to compile .crs files to the intermediate language of .NET following the [ECMA 335 Standard](https://ecma-international.org/wp-content/uploads/ECMA-335_6th_edition_june_2012.pdf).
 
 ## Syntax
 
