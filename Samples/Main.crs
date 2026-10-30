@@ -1,0 +1,9 @@
+galaxy Samples {
+    universal constellation Program {
+        universal vacuum Main()
+        {
+        }
+
+        universal vacuum Test() {}
+    }
+}
