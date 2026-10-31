@@ -4,6 +4,7 @@ galaxy Samples {
         {
         }
 
-        universal eternal vacuum Test() {}
+        universal int Test(int input) {}
+        universal int Test2(int input, string str) {}
     }
 }
