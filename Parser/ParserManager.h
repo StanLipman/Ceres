@@ -50,7 +50,7 @@ public:
         if (tokens.size() < currentTokenIndex)
             return tokens.back();
 
-        return tokens[currentTokenIndex + 1];
+        return tokens[currentTokenIndex];
     }
 
     void BuildAst()

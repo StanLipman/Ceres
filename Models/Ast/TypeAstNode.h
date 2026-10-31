@@ -1,19 +1,22 @@
 #pragma once
+#include <cassert>
+
 #include "AstNodes.h"
 
 class TypeAstNode : public AstNode
 {
 private:
-    std::string identifierName;
+    std::string typeIdentifierName;
 
 public:
-    void SetName(const std::string& galaxyName)
+    void SetName(const std::string& typeName)
     {
-        this->identifierName = galaxyName;
+        assert(typeIdentifierName.empty());
+        typeIdentifierName = typeName;
     }
 
     void Print(int depth) override
     {
-        printf("%s", identifierName.c_str());
+        printf("%s", typeIdentifierName.c_str());
     }
 };
