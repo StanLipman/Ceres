@@ -17,21 +17,21 @@ public:
         this->identifierName = galaxyName;
     }
 
+    std::string GetName()
+    {
+        return this->identifierName;
+    }
+
     void SetBody(const std::shared_ptr<BodyAstNode>& body)
     {
         assert(this->bodyAstNode == nullptr);
         this->bodyAstNode = body;
     }
 
-    void Print(const int depth) override
+    std::shared_ptr<BodyAstNode> GetBody()
     {
-        for (size_t i = 0; i < depth; i++)
-            printf("-");
-        printf("galaxy %s\n", this->identifierName.c_str());
-
-        if (bodyAstNode == nullptr)
-            return;
-
-        bodyAstNode->Print(depth + 1);
+        return this->bodyAstNode;
     }
+
+    void accept(AstVisitor& visitor) override;
 };

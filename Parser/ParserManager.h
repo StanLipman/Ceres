@@ -37,6 +37,11 @@ public:
         this->methodParser = std::make_shared<MethodParser>(this);
     }
 
+    std::shared_ptr<DocumentAstNode> GetDocumentAstNode()
+    {
+        return this->documentAstNode;
+    }
+
     Token GetNextToken()
     {
         if (tokens.size() < currentTokenIndex)
@@ -57,11 +62,6 @@ public:
     {
         this->documentAstNode = std::make_shared<DocumentAstNode>();
         documentParser->Parse(nullptr, this->documentAstNode);
-    }
-
-    void PrintAst()
-    {
-        this->documentAstNode->Print(0);
     }
 
     static void GiveError(const Token& token, const std::string& message)

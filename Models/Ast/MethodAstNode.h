@@ -24,10 +24,20 @@ public:
         this->identifierName = galaxyName;
     }
 
+    std::string GetName()
+    {
+        return this->identifierName;
+    }
+
     void SetAccessModifier(const TokenKind tokenKind)
     {
         assert(IsAccessModifier(tokenKind));
         this->accessModifier = tokenKind;
+    }
+
+    [[nodiscard]] TokenKind GetAccessModifier() const
+    {
+        return this->accessModifier;
     }
 
     void SetReturnType(const std::shared_ptr<TypeAstNode>& returnType)
@@ -36,15 +46,30 @@ public:
         this->returnTypeAstNode = returnType;
     }
 
+    std::shared_ptr<TypeAstNode> GetReturnType()
+    {
+        return returnTypeAstNode;
+    }
+
     void SetIsEternal()
     {
         assert(!isEternal);
         isEternal = true;
     }
 
+    bool IsEternal()
+    {
+        return this->isEternal;
+    }
+
     void AddArgument(const std::shared_ptr<ArgumentAstNode>& argument)
     {
         argumentAstNodes.emplace_back(argument);
+    }
+
+    std::vector<std::shared_ptr<ArgumentAstNode>>& GetArguments()
+    {
+        return argumentAstNodes;
     }
 
     void SetBody(const std::shared_ptr<BodyAstNode>& body)
@@ -53,24 +78,10 @@ public:
         this->bodyAstNode = body;
     }
 
-    void Print(const int depth) override
+    std::shared_ptr<BodyAstNode> GetBody()
     {
-        for (size_t i = 0; i < depth; i++)
-            printf("-");
-
-        printf("%s ", GetTokenKindText(accessModifier).c_str());
-        returnTypeAstNode->Print(depth);
-        printf(" %s(", identifierName.c_str());
-
-        for (size_t i = 0; i < argumentAstNodes.size(); i++)
-        {
-            argumentAstNodes.at(i)->Print(depth);
-            if (i < argumentAstNodes.size() - 1)
-                printf(", ");
-        }
-
-        printf(")");
-        bodyAstNode->Print(depth + 1);
-        printf("\n");
+        return this->bodyAstNode;
     }
+
+    void accept(AstVisitor& visitor) override;
 };

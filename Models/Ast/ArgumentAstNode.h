@@ -17,16 +17,20 @@ public:
         argumentIdentifierName = argumentName;
     }
 
+    std::string GetName()
+    {
+        return argumentIdentifierName;
+    }
+
     void SetType(const std::shared_ptr<TypeAstNode>& argumentType)
     {
         argumentTypeAstNode = argumentType;
     }
 
-    void Print(const int depth) override
+    std::shared_ptr<TypeAstNode> GetType()
     {
-        assert(argumentTypeAstNode != nullptr);
-
-        argumentTypeAstNode->Print(depth);
-        printf(" %s", argumentIdentifierName.c_str());
+        return argumentTypeAstNode;
     }
+
+    void accept(AstVisitor& visitor) override;
 };

@@ -15,11 +15,10 @@ public:
         statementAstNodes.push_back(statementAstNode);
     }
 
-    void Print(const int depth) override
+    std::vector<std::shared_ptr<AstNode>>& GetStatements()
     {
-        for (const auto& statementAstNode : statementAstNodes)
-        {
-            statementAstNode->Print(depth);
-        }
+        return statementAstNodes;
     }
+
+    void accept(AstVisitor& visitor) override;
 };

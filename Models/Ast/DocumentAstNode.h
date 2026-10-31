@@ -16,13 +16,10 @@ public:
         galaxyAstNodes.push_back(galaxyAstNode);
     }
 
-    void Print(const int depth) override
+    std::vector<std::shared_ptr<GalaxyAstNode>>& GetGalaxyAstNodes()
     {
-        for (const auto& galaxyAstNode : galaxyAstNodes)
-        {
-            for (size_t i = 0; i < depth; i++)
-                printf("-");
-            galaxyAstNode->Print(depth + 1);
-        }
+        return galaxyAstNodes;
     }
+
+    void accept(AstVisitor& visitor) override;
 };

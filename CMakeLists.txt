@@ -31,4 +31,18 @@ add_executable(Ceres
         Parser/MethodParser.h
         Models/TokenKind.h
         Models/Ast/ArgumentAstNode.h
+        Semantics/SemanticModel.h
+        Semantics/Scope.h
+        Semantics/Symbol.h
+        TypeSystem/Type.h
+        Passes/AstVisitor.h
+        Models/Ast/DocumentAstNode.cpp
+        Passes/PrintAstPass.h
+        Models/Ast/GalaxyAstNode.cpp
+        Models/Ast/TypeAstNode.cpp
+        Models/Ast/ArgumentAstNode.cpp
+        Models/Ast/BodyAstNode.cpp
+        Models/Ast/ConstellationAstNode.cpp
+        Models/Ast/MethodAstNode.cpp
+        Passes/PrintAstPass.cpp
 )

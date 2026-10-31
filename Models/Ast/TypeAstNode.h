@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include <string>
 
 #include "AstNodes.h"
 
@@ -15,8 +16,10 @@ public:
         typeIdentifierName = typeName;
     }
 
-    void Print(int depth) override
+    std::string GetName()
     {
-        printf("%s", typeIdentifierName.c_str());
+        return typeIdentifierName;
     }
+
+    void accept(AstVisitor& visitor) override;
 };
