@@ -50,14 +50,17 @@ public:
         if (tokens.size() < currentTokenIndex)
             return tokens.back();
 
-        return tokens[currentTokenIndex + 1];
+        return tokens[currentTokenIndex];
     }
 
     void BuildAst()
     {
         this->documentAstNode = std::make_shared<DocumentAstNode>();
         documentParser->Parse(nullptr, this->documentAstNode);
+    }
 
+    void PrintAst()
+    {
         this->documentAstNode->Print(0);
     }
 

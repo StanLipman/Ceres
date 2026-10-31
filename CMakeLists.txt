@@ -29,4 +29,6 @@ add_executable(Ceres
         Parser/ConstellationParser.h
         Parser/MethodParser.cpp
         Parser/MethodParser.h
+        Models/TokenKind.h
+        Models/Ast/ArgumentAstNode.h
 )

@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 
+#include "ArgumentAstNode.h"
 #include "AstNodes.h"
 #include "BodyAstNode.h"
 #include "TypeAstNode.h"
@@ -14,6 +15,8 @@ private:
     std::string identifierName;
     std::shared_ptr<BodyAstNode> bodyAstNode;
     std::shared_ptr<TypeAstNode> returnTypeAstNode;
+    std::vector<std::shared_ptr<ArgumentAstNode>> argumentAstNodes;
+    bool isEternal = false;
 
 public:
     void SetName(const std::string& galaxyName)
@@ -33,6 +36,17 @@ public:
         this->returnTypeAstNode = returnType;
     }
 
+    void SetIsEternal()
+    {
+        assert(!isEternal);
+        isEternal = true;
+    }
+
+    void AddArgument(const std::shared_ptr<ArgumentAstNode>& argument)
+    {
+        argumentAstNodes.emplace_back(argument);
+    }
+
     void SetBody(const std::shared_ptr<BodyAstNode>& body)
     {
         assert(this->bodyAstNode == nullptr);
@@ -46,7 +60,16 @@ public:
 
         printf("%s ", GetTokenKindText(accessModifier).c_str());
         returnTypeAstNode->Print(depth);
-        printf(" %s()", identifierName.c_str());
+        printf(" %s(", identifierName.c_str());
+
+        for (size_t i = 0; i < argumentAstNodes.size(); i++)
+        {
+            argumentAstNodes.at(i)->Print(depth);
+            if (i < argumentAstNodes.size() - 1)
+                printf(", ");
+        }
+
+        printf(")");
         bodyAstNode->Print(depth + 1);
         printf("\n");
     }
