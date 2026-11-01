@@ -1,10 +1,11 @@
 #pragma once
 #include <iostream>
-#include "FileIO/WriteDllFile.h"
 #include <cstring>
 
+#include "FileIO/WriteDllFile.h"
 #include "Lexer/Lexer.h"
 #include "Parser/ParserManager.h"
+#include "MetaData/CreateMetaData.h"
 
 int main(int argc, char* argv[])
 {
@@ -28,8 +29,11 @@ int main(int argc, char* argv[])
         }
         else if (strcmp(argv[i], "--WriteDll") == 0)
         {
-            // Test data
-            std::vector<uint8_t> bytes = { 0x4D, 0x5A, 0x90, 0x00 };
+            std::vector<uint8_t> bytes;
+            bytes.reserve(1024 * 1024); // Reserve 1 MB
+
+            if (!CreateMetaDataFromParseManager(parseManager, bytes))
+                return 1;
 
             if (!WriteAllBytesToNewDll(argv[1], bytes))
                 return 1;

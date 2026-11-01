@@ -32,4 +32,7 @@ add_executable(Ceres
         Parser/MethodParser.h
         Models/TokenKind.h
         Models/Ast/ArgumentAstNode.h
+        "MetaData/PE Headers/MsDosHeader.h"
+        "MetaData/PE Headers/FileHeader.h"
+        MetaData/CreateMetaData.h
 )
