@@ -24,12 +24,19 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
 
     method->SetAccessModifier(accessModifierToken.kind);
 
-    if (parser->PeekNextToken().kind == TokenKind::eternal)
+    const Token eternalToken = parser->GetNextToken();
+    if (eternalToken.kind != TokenKind::eternal)
     {
-        const Token eternalToken = parser->GetNextToken();
-        assert(eternalToken.kind == TokenKind::eternal);
-        method->SetIsEternal();
+        ParseManager::GiveError(eternalToken, "All methods should be eternal (at least for now)");
+        return;
     }
+    // TODO: Re-enable this when we make eternal optional again on methods
+    // if (parser->PeekNextToken().kind == TokenKind::eternal)
+    // {
+    //     const Token eternalToken = parser->GetNextToken();
+    //     assert(eternalToken.kind == TokenKind::eternal);
+    //     method->SetIsEternal();
+    // }
 
     const Token returnTypeToken = parser->GetNextToken();
     if (returnTypeToken.kind != TokenKind::identifier && returnTypeToken.kind != TokenKind::vacuum)

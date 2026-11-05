@@ -3,6 +3,8 @@
 
 class PrintAstPass: public AstVisitor
 {
+private:
+    int currentDepth = 0;
 public:
     void visit(DocumentAstNode& node) override;
     void visit(GalaxyAstNode& node) override;

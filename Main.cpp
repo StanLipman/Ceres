@@ -5,6 +5,7 @@
 #include "Lexer/Lexer.h"
 #include "Parser/ParserManager.h"
 #include "Passes/PrintAstPass.h"
+#include "Passes/SemanticAnalyzer.h"
 
 int main(int argc, char* argv[])
 {
@@ -19,6 +20,9 @@ int main(int argc, char* argv[])
     ParseManager parseManager(lexer.GetTokens());
 
     parseManager.BuildAst();
+
+    const SemanticAnalyzer semanticAnalyzer;
+    semanticAnalyzer.analyze(parseManager.GetDocumentAstNode());
 
     for (size_t i = 2; i < argc; i++)
     {

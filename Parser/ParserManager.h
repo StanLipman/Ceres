@@ -66,7 +66,7 @@ public:
 
     static void GiveError(const Token& token, const std::string& message)
     {
-        assert(false);
+        // assert(false);
         printf("Syntax error at %lu:%lu.\n\tmessage: %s. Got %s\n", token.location.line, token.location.column, message.c_str(), GetTokenKindText(token.kind).c_str());
     }
 };

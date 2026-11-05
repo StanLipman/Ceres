@@ -6,6 +6,7 @@
 #include "BodyAstNode.h"
 #include "TypeAstNode.h"
 #include "Models/Token.h"
+#include "Models/Scopes/Scope.h"
 
 // TODO: Should this get a cool space name as well?
 class MethodAstNode : public AstNode
@@ -16,6 +17,7 @@ private:
     std::shared_ptr<BodyAstNode> bodyAstNode;
     std::shared_ptr<TypeAstNode> returnTypeAstNode;
     std::vector<std::shared_ptr<ArgumentAstNode>> argumentAstNodes;
+    std::shared_ptr<Scope> scope;
     bool isEternal = false;
 
 public:
@@ -81,6 +83,17 @@ public:
     std::shared_ptr<BodyAstNode> GetBody()
     {
         return this->bodyAstNode;
+    }
+
+    void SetScope(const std::shared_ptr<Scope>& scopeToSet)
+    {
+        assert(scope == nullptr);
+        scope = scopeToSet;
+    }
+
+    std::shared_ptr<Scope> GetScope()
+    {
+        return scope;
     }
 
     void accept(AstVisitor& visitor) override;

@@ -8,14 +8,19 @@
 #include "Models/Ast/TypeAstNode.h"
 
 void PrintAstPass::visit(DocumentAstNode& node) {
+    currentDepth++;
     for (const auto& galaxyAstNode : node.GetGalaxyAstNodes())
     {
         galaxyAstNode->accept(*this);
     }
+    currentDepth--;
 }
 
 void PrintAstPass::visit(GalaxyAstNode& node)
 {
+    for (size_t i = 0; i < currentDepth; i++)
+        printf("-");
+
     printf("galaxy %s\n", node.GetName().c_str());
 
     const auto body = node.GetBody();
@@ -34,14 +39,19 @@ void PrintAstPass::visit(ArgumentAstNode& node)
 
 void PrintAstPass::visit(BodyAstNode& node)
 {
+    currentDepth++;
     for (const auto& statement : node.GetStatements())
     {
         statement->accept(*this);
     }
+    currentDepth--;
 }
 
 void PrintAstPass::visit(ConstellationAstNode& node)
 {
+    for (size_t i = 0; i < currentDepth; i++)
+        printf("-");
+
     const auto accessModifier = node.GetAccessModifier();
     const auto name = node.GetName();
     const auto body = node.GetBody();
@@ -56,6 +66,9 @@ void PrintAstPass::visit(ConstellationAstNode& node)
 
 void PrintAstPass::visit(MethodAstNode& node)
 {
+    for (size_t i = 0; i < currentDepth; i++)
+        printf("-");
+
     printf("%s ", GetTokenKindText(node.GetAccessModifier()).c_str());
     node.GetReturnType()->accept(*this);
     printf(" %s(", node.GetName().c_str());
