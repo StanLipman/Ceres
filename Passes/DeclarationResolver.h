@@ -16,8 +16,9 @@ public:
 
     void visit(DocumentAstNode& node) override
     {
-        currentScope = node.GetScope();
-        for (const auto& galaxyAstNode : node.GetGalaxyAstNodes())
+        assert(node.scope != nullptr);
+        currentScope = node.scope;
+        for (const auto& galaxyAstNode : node.galaxyAstNodes)
             galaxyAstNode->accept(*this);
 
         currentScope = currentScope->parent;
@@ -25,9 +26,11 @@ public:
 
     void visit(GalaxyAstNode& node) override
     {
-        currentScope = node.GetScope();
+        assert(node.scope != nullptr);
+        currentScope = node.scope;
 
-        node.GetBody()->accept(*this);
+        assert(node.bodyAstNode != nullptr);
+        node.bodyAstNode->accept(*this);
 
         currentScope = currentScope->parent;
     }
@@ -36,22 +39,25 @@ public:
     {
         // No scope switching, as it is always part of a parent, which handles the switching
 
-        for (const auto& statement : node.GetStatements())
+        for (const auto& statement : node.statementAstNodes)
             statement->accept(*this);
     }
 
     void visit(ConstellationAstNode& node) override
     {
-        currentScope = node.GetScope();
+        assert(node.scope != nullptr);
+        currentScope = node.scope;
 
-        node.GetBody()->accept(*this);
+        assert(node.bodyAstNode != nullptr);
+        node.bodyAstNode->accept(*this);
 
         currentScope = currentScope->parent;
     }
 
     void visit(MethodAstNode& node) override
     {
-        auto* symbol = dynamic_cast<MethodSymbol*>(currentScope->Lookup(node.GetName()).get());
+        assert(!node.name.empty());
+        auto* symbol = dynamic_cast<MethodSymbol*>(currentScope->Lookup(node.name).get());
 
         if (symbol == nullptr)
         {
@@ -60,36 +66,42 @@ public:
         }
 
         const auto methodType = std::make_shared<MethodType>();
-        methodType->kind = method;
-        methodType->returnType = ResolveType(*node.GetReturnType());
+        methodType->kind = Type::TypeKind::method;
+        assert(node.returnTypeAstNode != nullptr);
+        methodType->returnType = ResolveType(*node.returnTypeAstNode);
 
-        for (const auto& argumentAstNode : node.GetArguments())
+        for (const auto& argumentAstNode : node.argumentAstNodes)
         {
-            auto parameterType = ResolveType(*argumentAstNode->GetType());
+            assert(argumentAstNode->typeAstNode != nullptr);
+            auto parameterType = ResolveType(*argumentAstNode->typeAstNode);
 
             methodType->parameterTypes.push_back(parameterType);
         }
 
         symbol->type = methodType;
 
-        currentScope = node.GetScope();
+        assert(node.scope != nullptr);
+        currentScope = node.scope;
 
+        assert(methodType->parameterTypes.size() == node.argumentAstNodes.size());
         for (size_t i = 0; i < methodType->parameterTypes.size(); ++i)
         {
-            const auto& argumentAstNode = node.GetArguments()[i];
+            const auto& argumentAstNode = node.argumentAstNodes[i];
 
             const auto variableSymbol = std::make_shared<VariableSymbol>();
-            variableSymbol->name = argumentAstNode->GetName();
+            assert(!argumentAstNode->name.empty());
+            variableSymbol->name = argumentAstNode->name;
             variableSymbol->type = symbol->type->parameterTypes[i];
 
             if (!currentScope->Insert(variableSymbol))
             {
-                printf("Duplicate parameter '%s'\n", argumentAstNode->GetName().c_str());
+                printf("Duplicate parameter '%s'\n", argumentAstNode->name.c_str());
                 continue;
             }
         }
 
-        node.GetBody()->accept(*this);
+        assert(node.bodyAstNode != nullptr);
+        node.bodyAstNode->accept(*this);
 
         currentScope = currentScope->parent;
     }
@@ -108,11 +120,12 @@ public:
 private:
     std::shared_ptr<Type> ResolveType(TypeAstNode& typeAstNode) const
     {
-        const std::shared_ptr<Symbol> symbol = currentScope->Lookup(typeAstNode.GetName());
+        assert(!typeAstNode.name.empty());
+        const std::shared_ptr<Symbol> symbol = currentScope->Lookup(typeAstNode.name);
 
         if (symbol == nullptr)
         {
-            printf("Unknown type: %s\n", typeAstNode.GetName().c_str());
+            printf("Unknown type: %s\n", typeAstNode.name.c_str());
             return nullptr;;
         }
 
@@ -120,7 +133,7 @@ private:
 
         if (constellationSymbol == nullptr)
         {
-            printf("%s is not a type\n", typeAstNode.GetName().c_str());
+            printf("%s is not a type\n", typeAstNode.name.c_str());
             return nullptr;
         }
 

@@ -14,7 +14,8 @@ void GalaxyParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
         return;
     }
 
-    galaxy->SetName(identifierToken.text);
+    assert(galaxy->name.empty());
+    galaxy->name = identifierToken.text;
 
     const Token leftCurlyToken = parser->GetNextToken();
     if (leftCurlyToken.kind != TokenKind::lCurly)
@@ -24,7 +25,10 @@ void GalaxyParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
     }
 
     const auto bodyAstNode = std::make_shared<BodyAstNode>();
-    galaxy->SetBody(bodyAstNode);
+
+    assert(galaxy->bodyAstNode == nullptr);
+    galaxy->bodyAstNode = bodyAstNode;
+
     parser->bodyParser->Parse(galaxy, bodyAstNode);
 
     if (const Token rightCurlyToken = parser->GetNextToken(); rightCurlyToken.kind != TokenKind::rCurly)

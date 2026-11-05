@@ -20,9 +20,11 @@ public:
     {
         const auto documentScope = std::make_shared<Scope>(Scope::ScopeTypes::document, currentScope);
         currentScope = documentScope;
-        node.SetScope(documentScope);
 
-        for (const auto& galaxyAstNode : node.GetGalaxyAstNodes())
+        assert(node.scope == nullptr);
+        node.scope = documentScope;
+
+        for (const auto& galaxyAstNode : node.galaxyAstNodes)
             galaxyAstNode->accept(*this);
 
         currentScope = documentScope->parent;
@@ -32,9 +34,12 @@ public:
     {
         const auto galaxyScope = std::make_shared<Scope>(Scope::ScopeTypes::galaxy, currentScope);
         currentScope = galaxyScope;
-        node.SetScope(galaxyScope);
 
-        node.GetBody()->accept(*this);
+        assert(node.scope == nullptr);
+        node.scope = galaxyScope;
+
+        assert(node.bodyAstNode != nullptr);
+        node.bodyAstNode->accept(*this);
 
         currentScope = currentScope->parent;
     }
@@ -47,7 +52,7 @@ public:
     void visit(BodyAstNode& node) override
     {
         // Don't create scopes here, as this is always part of a parent which handles creating scopes itself
-        for (const auto& statement : node.GetStatements())
+        for (const auto& statement : node.statementAstNodes)
             statement->accept(*this);
     }
 
@@ -55,12 +60,13 @@ public:
     {
         const auto symbol = std::make_shared<ConstellationSymbol>();
         symbol->symbolId = compilerContext.GetNextSymbolId();
-        symbol->name = node.GetName();
+        assert(!node.name.empty());
+        symbol->name = node.name;
         symbol->declaration = &node;
 
         const auto type = std::make_shared<ConstellationType>();
         type->id = compilerContext.GetNextTypeId();
-        type->kind = constellation;
+        type->kind = Type::TypeKind::constellation;
         type->declarationSymbolId = symbol->symbolId;
 
         symbol->type = type;
@@ -73,18 +79,23 @@ public:
 
         const auto constellationScope = std::make_shared<Scope>(Scope::ScopeTypes::constellation, currentScope);
         currentScope = constellationScope;
-        node.SetScope(constellationScope);
 
-        node.GetBody()->accept(*this);
+        assert(node.scope == nullptr);
+        node.scope = constellationScope;
+
+        assert(node.bodyAstNode != nullptr);
+        node.bodyAstNode->accept(*this);
 
         currentScope = currentScope->parent;
     }
 
     void visit(MethodAstNode& node) override
     {
+        assert(!node.name.empty());
+
         const auto symbol = std::make_shared<MethodSymbol>();
         symbol->symbolId = compilerContext.GetNextSymbolId();
-        symbol->name = node.GetName();
+        symbol->name = node.name;
         symbol->declaration = &node;
 
         if (!currentScope->Insert(symbol))
@@ -95,9 +106,12 @@ public:
 
         const auto methodScope = std::make_shared<Scope>(Scope::ScopeTypes::method, currentScope);
         currentScope = methodScope;
-        node.SetScope(methodScope);
 
-        node.GetBody()->accept(*this); // TODO: Don't know if this is really needed
+        assert(node.scope == nullptr);
+        node.scope = methodScope;
+
+        assert(node.bodyAstNode != nullptr);
+        node.bodyAstNode->accept(*this); // TODO: Don't know if this is really needed
 
         currentScope = currentScope->parent;
     }

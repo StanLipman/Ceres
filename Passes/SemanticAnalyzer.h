@@ -36,23 +36,23 @@ public:
 private:
     void CreatePrimitiveTypes()
     {
-        MakePrimitiveType("vacuum", vacuum);
-        MakePrimitiveType("bool", _bool);
-        MakePrimitiveType("byte", _byte);
-        MakePrimitiveType("char", _char);
-        MakePrimitiveType("decimal", _decimal);
-        MakePrimitiveType("double", _double);
-        MakePrimitiveType("float", _float);
-        MakePrimitiveType("short", _short);
-        MakePrimitiveType("ushort", _ushort);
-        MakePrimitiveType("int", _int);
-        MakePrimitiveType("uint", _uint);
-        MakePrimitiveType("long", _long);
-        MakePrimitiveType("ulong", _ulong);
-        MakePrimitiveType("string", string);
+        MakePrimitiveType("vacuum", Type::TypeKind::vacuum);
+        MakePrimitiveType("bool", Type::TypeKind::_bool);
+        MakePrimitiveType("byte", Type::TypeKind::_byte);
+        MakePrimitiveType("char", Type::TypeKind::_char);
+        MakePrimitiveType("decimal", Type::TypeKind::_decimal);
+        MakePrimitiveType("double", Type::TypeKind::_double);
+        MakePrimitiveType("float", Type::TypeKind::_float);
+        MakePrimitiveType("short", Type::TypeKind::_short);
+        MakePrimitiveType("ushort", Type::TypeKind::_ushort);
+        MakePrimitiveType("int", Type::TypeKind::_int);
+        MakePrimitiveType("uint", Type::TypeKind::_uint);
+        MakePrimitiveType("long", Type::TypeKind::_long);
+        MakePrimitiveType("ulong", Type::TypeKind::_ulong);
+        MakePrimitiveType("string", Type::TypeKind::string);
         }
 
-    void MakePrimitiveType(const std::string& name, const TypeKind kind)
+    void MakePrimitiveType(const std::string& name, const Type::TypeKind kind)
     {
         const auto symbol = std::make_shared<ConstellationSymbol>();
         symbol->name = name;

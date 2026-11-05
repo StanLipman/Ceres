@@ -18,11 +18,10 @@ public:
 
 private:
     ScopeTypes scopeType;
+    std::unordered_map<std::string, std::shared_ptr<Symbol>> symbols;
 
 public:
     std::shared_ptr<Scope> parent = nullptr;
-
-    std::unordered_map<std::string, std::shared_ptr<Symbol>> symbols;
 
     explicit Scope(const ScopeTypes type, const std::shared_ptr<Scope>& parent = nullptr) : scopeType(type), parent(parent) {};
 

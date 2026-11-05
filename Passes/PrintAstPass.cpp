@@ -9,7 +9,8 @@
 
 void PrintAstPass::visit(DocumentAstNode& node) {
     currentDepth++;
-    for (const auto& galaxyAstNode : node.GetGalaxyAstNodes())
+
+    for (const auto& galaxyAstNode : node.galaxyAstNodes)
     {
         galaxyAstNode->accept(*this);
     }
@@ -21,9 +22,10 @@ void PrintAstPass::visit(GalaxyAstNode& node)
     for (size_t i = 0; i < currentDepth; i++)
         printf("-");
 
-    printf("galaxy %s\n", node.GetName().c_str());
+    assert(!node.name.empty());
+    printf("galaxy %s\n", node.name.c_str());
 
-    const auto body = node.GetBody();
+    const auto body = node.bodyAstNode;
     if (body == nullptr)
         return;
 
@@ -32,15 +34,17 @@ void PrintAstPass::visit(GalaxyAstNode& node)
 
 void PrintAstPass::visit(ArgumentAstNode& node)
 {
-    const auto type = node.GetType();
+    assert(node.typeAstNode != nullptr);
+    const auto type = node.typeAstNode;
     type->accept(*this);
-    printf(" %s", node.GetName().c_str());
+    assert(!node.name.empty());
+    printf(" %s", node.name.c_str());
 }
 
 void PrintAstPass::visit(BodyAstNode& node)
 {
     currentDepth++;
-    for (const auto& statement : node.GetStatements())
+    for (const auto& statement : node.statementAstNodes)
     {
         statement->accept(*this);
     }
@@ -52,9 +56,12 @@ void PrintAstPass::visit(ConstellationAstNode& node)
     for (size_t i = 0; i < currentDepth; i++)
         printf("-");
 
-    const auto accessModifier = node.GetAccessModifier();
-    const auto name = node.GetName();
-    const auto body = node.GetBody();
+    assert(node.accessModifier != TokenKind::none);
+    assert(!node.name.empty());
+    assert(node.bodyAstNode != nullptr);
+    const auto accessModifier = node.accessModifier;
+    const auto name = node.name;
+    const auto body = node.bodyAstNode;
 
     printf("%s constellation %s\n", GetTokenKindText(accessModifier).c_str(), name.c_str());
 
@@ -69,11 +76,16 @@ void PrintAstPass::visit(MethodAstNode& node)
     for (size_t i = 0; i < currentDepth; i++)
         printf("-");
 
-    printf("%s ", GetTokenKindText(node.GetAccessModifier()).c_str());
-    node.GetReturnType()->accept(*this);
-    printf(" %s(", node.GetName().c_str());
+    assert(node.accessModifier != TokenKind::none);
+    printf("%s ", GetTokenKindText(node.accessModifier).c_str());
 
-    const auto arguments = node.GetArguments();
+    assert(node.returnTypeAstNode != nullptr);
+    node.returnTypeAstNode->accept(*this);
+
+    assert(!node.name.empty());
+    printf(" %s(", node.name.c_str());
+
+    const auto arguments = node.argumentAstNodes;
     for (size_t i = 0; i < arguments.size(); i++)
     {
         arguments.at(i)->accept(*this);
@@ -82,11 +94,14 @@ void PrintAstPass::visit(MethodAstNode& node)
     }
 
     printf(")");
-    node.GetBody()->accept(*this);
+
+    assert(node.bodyAstNode != nullptr);
+    node.bodyAstNode->accept(*this);
     printf("\n");
 }
 
 void PrintAstPass::visit(TypeAstNode& node)
 {
-    printf("%s", node.GetName().c_str());
+    assert(!node.name.empty());
+    printf("%s", node.name.c_str());
 }

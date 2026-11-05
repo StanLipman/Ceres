@@ -17,7 +17,7 @@ void DocumentParser::Parse(const std::shared_ptr<AstNode> parent, const std::sha
         }
 
         const auto galaxyAstNode = std::make_shared<GalaxyAstNode>();
-        document->AddGalaxyAstNode(galaxyAstNode);
+        document->galaxyAstNodes.push_back(galaxyAstNode);
 
         parser->galaxyParser->Parse(nullptr, galaxyAstNode);
     }

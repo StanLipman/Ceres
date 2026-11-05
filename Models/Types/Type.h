@@ -3,29 +3,29 @@
 #include <memory>
 #include <vector>
 
-enum TypeKind
-{
-    _bool,
-    _byte,
-    _char,
-    _decimal,
-    _double,
-    _float,
-    _short,
-    _ushort,
-    _int,
-    _uint,
-    _long,
-    _ulong,
-    string,
-    vacuum,
-    constellation,
-    method,
-};
-
 class Type
 {
 public:
+    enum TypeKind
+    {
+        _bool,
+        _byte,
+        _char,
+        _decimal,
+        _double,
+        _float,
+        _short,
+        _ushort,
+        _int,
+        _uint,
+        _long,
+        _ulong,
+        string,
+        vacuum,
+        constellation,
+        method,
+    };
+
     TypeId id;
     TypeKind kind;
 
