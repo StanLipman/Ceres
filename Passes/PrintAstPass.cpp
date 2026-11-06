@@ -93,7 +93,7 @@ void PrintAstPass::visit(MethodAstNode& node)
             printf(", ");
     }
 
-    printf(")");
+    printf(")\n");
 
     assert(node.bodyAstNode != nullptr);
     node.bodyAstNode->accept(*this);
@@ -104,4 +104,12 @@ void PrintAstPass::visit(TypeAstNode& node)
 {
     assert(!node.name.empty());
     printf("%s", node.name.c_str());
+}
+
+void PrintAstPass::visit(TransmitAstNode& node)
+{
+    for (size_t i = 0; i < currentDepth; i++)
+        printf("-");
+
+    printf("transmit\n");
 }

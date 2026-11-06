@@ -40,7 +40,9 @@
     X(lCurly, "{") \
     X(rCurly, "}") \
     X(semicolon, ";") \
-    X(comma, ",")
+    X(comma, ",") \
+    /* Control Flow and Logic */ \
+    X(transmit, "transmit")
 
 #define SPECIAL_TOKENS(X) \
     X(identifier, "identifier") \

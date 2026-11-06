@@ -4,6 +4,7 @@
 #include "Models/Token.h"
 #include "Models/Ast/ConstellationAstNode.h"
 #include "Models/Ast/MethodAstNode.h"
+#include "Models/Ast/TransmitAstNode.h"
 
 class GalaxyAstNode;
 
@@ -26,6 +27,24 @@ void BodyParser::Parse(const std::shared_ptr<AstNode> parent, const std::shared_
             parser->methodParser->Parse(body, methodAstNode);
         }
         return;
+    }
+
+    if (const auto methodAstNode = std::dynamic_pointer_cast<MethodAstNode>(parent))
+    {
+        const Token nextToken = parser->PeekNextToken();
+        if (nextToken.kind == TokenKind::transmit)
+        {
+            const Token transmitToken = parser->GetNextToken();
+            if (const Token token = parser->GetNextToken(); token.kind != TokenKind::semicolon)
+            {
+                ParseManager::GiveError(token, "Expected semicolon");
+                return;
+            }
+
+            const auto transmitAstNode = std::make_shared<TransmitAstNode>();
+            assert(methodAstNode->bodyAstNode != nullptr);
+            methodAstNode->bodyAstNode->statementAstNodes.push_back(transmitAstNode);
+        }
     }
 
     // assert(false); // TODO: Make handling
