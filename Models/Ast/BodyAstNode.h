@@ -6,20 +6,8 @@
 
 class BodyAstNode : public AstNode
 {
-private:
+public:
     std::vector<std::shared_ptr<AstNode>> statementAstNodes;
 
-public:
-    void AddStatement(const std::shared_ptr<AstNode>& statementAstNode)
-    {
-        statementAstNodes.push_back(statementAstNode);
-    }
-
-    void Print(const int depth) override
-    {
-        for (const auto& statementAstNode : statementAstNodes)
-        {
-            statementAstNode->Print(depth);
-        }
-    }
+    void accept(AstVisitor& visitor) override;
 };
