@@ -21,6 +21,7 @@ void ConstellationParser::Parse(const std::shared_ptr<AstNode> parent, const std
 
     // TODO: Add handling for structs
 
+    // TODO: Fix this: https://github.com/StanLipman/Ceres/issues/12
     const Token eternalToken = parser->GetNextToken();
     if (eternalToken.kind != TokenKind::eternal)
     {

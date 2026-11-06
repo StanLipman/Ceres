@@ -31,7 +31,7 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
         ParseManager::GiveError(eternalToken, "All methods should be eternal (at least for now)");
         return;
     }
-    // TODO: Re-enable this when we make eternal optional again on methods
+    // TODO: Re-enable this when we make eternal optional again on methods https://github.com/StanLipman/Ceres/issues/12
     // if (parser->PeekNextToken().kind == TokenKind::eternal)
     // {
     //     const Token eternalToken = parser->GetNextToken();

@@ -111,7 +111,7 @@ public:
         node.scope = methodScope;
 
         assert(node.bodyAstNode != nullptr);
-        node.bodyAstNode->accept(*this); // TODO: Don't know if this is really needed
+        node.bodyAstNode->accept(*this);
 
         currentScope = currentScope->parent;
     }
