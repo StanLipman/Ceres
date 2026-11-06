@@ -1,8 +1,10 @@
 #pragma once
 
+class AstVisitor;
+
 class AstNode
 {
 public:
     virtual ~AstNode() = default;
-    virtual void Print(int depth) = 0;
+    virtual void accept(AstVisitor& visitor) = 0;
 };

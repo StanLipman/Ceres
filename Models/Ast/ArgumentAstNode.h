@@ -7,26 +7,9 @@
 
 class ArgumentAstNode : public AstNode
 {
-private:
-    std::string argumentIdentifierName;
-    std::shared_ptr<TypeAstNode> argumentTypeAstNode;
-
 public:
-    void SetName(const std::string& argumentName)
-    {
-        argumentIdentifierName = argumentName;
-    }
+    std::string name;
+    std::shared_ptr<TypeAstNode> typeAstNode;
 
-    void SetType(const std::shared_ptr<TypeAstNode>& argumentType)
-    {
-        argumentTypeAstNode = argumentType;
-    }
-
-    void Print(const int depth) override
-    {
-        assert(argumentTypeAstNode != nullptr);
-
-        argumentTypeAstNode->Print(depth);
-        printf(" %s", argumentIdentifierName.c_str());
-    }
+    void accept(AstVisitor& visitor) override;
 };

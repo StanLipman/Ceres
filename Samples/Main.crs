@@ -1,10 +1,12 @@
 galaxy Samples {
-    universal constellation Program {
+    universal eternal constellation Program {
         universal eternal vacuum Main()
         {
+            transmit;
         }
 
-        universal int Test(int input) {}
-        universal int Test2(int input, string str) {}
+        universal eternal bool Test(int input) {}
+        universal eternal int Test2(int input, string str) {}
+        universal eternal Program Test3(int input, string str) {}
     }
 }

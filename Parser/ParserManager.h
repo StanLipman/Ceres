@@ -37,6 +37,11 @@ public:
         this->methodParser = std::make_shared<MethodParser>(this);
     }
 
+    std::shared_ptr<DocumentAstNode> GetDocumentAstNode()
+    {
+        return this->documentAstNode;
+    }
+
     Token GetNextToken()
     {
         if (tokens.size() < currentTokenIndex)
@@ -59,14 +64,9 @@ public:
         documentParser->Parse(nullptr, this->documentAstNode);
     }
 
-    void PrintAst()
-    {
-        this->documentAstNode->Print(0);
-    }
-
     static void GiveError(const Token& token, const std::string& message)
     {
-        assert(false);
+        // assert(false);
         printf("Syntax error at %lu:%lu.\n\tmessage: %s. Got %s\n", token.location.line, token.location.column, message.c_str(), GetTokenKindText(token.kind).c_str());
     }
 };

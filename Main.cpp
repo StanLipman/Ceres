@@ -1,10 +1,11 @@
-#pragma once
 #include <iostream>
 #include "FileIO/WriteDllFile.h"
 #include <cstring>
 
 #include "Lexer/Lexer.h"
 #include "Parser/ParserManager.h"
+#include "Passes/PrintAstPass.h"
+#include "Passes/SemanticAnalyzer.h"
 
 int main(int argc, char* argv[])
 {
@@ -20,11 +21,16 @@ int main(int argc, char* argv[])
 
     parseManager.BuildAst();
 
+    const SemanticAnalyzer semanticAnalyzer;
+    semanticAnalyzer.analyze(parseManager.GetDocumentAstNode());
+
     for (size_t i = 2; i < argc; i++)
     {
         if (strcmp(argv[i], "--printAst") == 0)
         {
-            parseManager.PrintAst();
+            PrintAstPass printAstPass;
+            const auto documentNode = parseManager.GetDocumentAstNode();
+            printAstPass.visit(*documentNode);
         }
         else if (strcmp(argv[i], "--WriteDll") == 0)
         {
