@@ -1,0 +1,116 @@
+{
+  "scopeName": "source.ceres",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#storage"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.mylang",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.ceres",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.ceres",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.ceres",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "storage": {
+        "patterns": [
+            {
+                "name": "storage.modifier.ceres",
+                "match": "\\b(universal|local|shielded|enclosed|eternal|ethereal|fluit|transform|bound|secured|absolute)\\b"
+            },
+            {
+                "name": "storage.type.class",
+                "match": "\\b(constellation)\\b"
+            },
+            {
+                "name": "storage.type",
+                "match": "\\b(bool|byte|char|decimal|double|float|short|ushort|int|uint|long|ulong|string|vacuum|absence)\\b"
+            },
+            {
+                "name": "storage.type.struct",
+                "match": "\\b(world|atlas)\\b"
+            },
+            {
+                "name": "storage.type.interface",
+                "match": "\\b(protocol)\\b"
+            },
+            {
+                "name": "storage.type.enum",
+                "match": "\\b(spectrum)\\b"
+            },
+            {
+                "name": "entity.name.namespace",
+                "match": "\\b(galaxy)\\b"
+            }
+        ]
+    },
+    "keywords": {
+        "patterns": [
+            {
+                "name": "keyword.control.import.ceres",
+                "match": "\\b(import)\\b"
+            },
+            {
+                "name": "variable.language.ceres",
+                "match": "\\b(self|origin|auto)\\b"
+            },
+            {
+                "name": "keyword.control.ceres",
+                "match": "\\b(when|otherwise|explore|destination|autopilot|cycle|scan|orbit|launch|abort|proceed|transmit|signal|attempt|recover|conclude)\\b"
+            }
+        ]
+    },
+    "numbers": {
+      "name": "constant.numeric.ceres",
+      "match": "\\b[0-9]+(\\.[0-9]+)?\\b"
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "entity.name.function.ceres",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*(?=\\s*\\()"
+        }
+      ]
+    },
+    "operators": {
+      "name": "keyword.operator.ceres",
+      "match": "->|<=|>=|==|!=|[+*/%=<>-]"
+    }
+  }
+}
