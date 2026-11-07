@@ -365,3 +365,8 @@ FodyWeavers.xsd
 Samples/Output/
 
 .idea/**
+
+VsCodeExtensions/ceres/out/**
+VsCodeExtensions/ceres/dist/**
+VsCodeExtensions/ceres/node_modules/**
+VsCodeExtensions/ceres/.vscode/**
