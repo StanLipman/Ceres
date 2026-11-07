@@ -20,5 +20,6 @@ public:
 
 private:
     void LexLine(const std::string& line, size_t lineNr);
+    void LexNumericValue(const std::string& line, size_t lineNr);
     void HandleCompleteToken(std::string& tokenText, TokenKind tokenKind, size_t lineNr, size_t startCol);
 };

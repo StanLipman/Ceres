@@ -122,8 +122,13 @@ public:
         // Skip
     }
 
+    void visit(LiteralValueAstNode& node) override
+    {
+        // Skip
+    }
+
 private:
-    std::shared_ptr<Type> ResolveType(TypeAstNode& typeAstNode) const
+    std::shared_ptr<Type> ResolveType(const TypeAstNode& typeAstNode) const
     {
         assert(!typeAstNode.name.empty());
         const std::shared_ptr<Symbol> symbol = currentScope->Lookup(typeAstNode.name);

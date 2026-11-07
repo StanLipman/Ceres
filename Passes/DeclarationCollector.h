@@ -125,4 +125,9 @@ public:
     {
         // Skip
     }
+
+    void visit(LiteralValueAstNode& node) override
+    {
+        // Skip
+    }
 };

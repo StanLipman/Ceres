@@ -52,4 +52,8 @@ add_executable(Ceres
         Models/Symbols/MethodSymbol.h
         Models/Ast/TransmitAstNode.cpp
         Models/Ast/TransmitAstNode.h
+        Models/Ast/LiteralValueAstNode.cpp
+        Models/Ast/LiteralValueAstNode.h
+        Parser/LiteralValueParser.cpp
+        Parser/LiteralValueParser.h
 )

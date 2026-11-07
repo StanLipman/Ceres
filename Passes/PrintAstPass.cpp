@@ -4,7 +4,9 @@
 #include "Models/Ast/ArgumentAstNode.h"
 #include "Models/Ast/BodyAstNode.h"
 #include "Models/Ast/ConstellationAstNode.h"
+#include "Models/Ast/LiteralValueAstNode.h"
 #include "Models/Ast/MethodAstNode.h"
+#include "Models/Ast/TransmitAstNode.h"
 #include "Models/Ast/TypeAstNode.h"
 
 void PrintAstPass::visit(DocumentAstNode& node) {
@@ -111,5 +113,82 @@ void PrintAstPass::visit(TransmitAstNode& node)
     for (size_t i = 0; i < currentDepth; i++)
         printf("-");
 
-    printf("transmit\n");
+    printf("transmit ");
+
+    if (node.transmitValue != nullptr)
+        node.transmitValue->accept(*this);
+
+    printf("\n");
+}
+
+void PrintAstPass::visit(LiteralValueAstNode& node)
+{
+    if (node.tokenKind == TokenKind::_string || node.tokenKind == TokenKind::_char)
+    {
+        const auto stringValue = reinterpret_cast<LiteralStringValueAstNode&>(node);
+        printf("%s", stringValue.value.c_str());
+        return;
+    }
+
+    const auto numericValue = reinterpret_cast<LiteralNumericValueAstNode&>(node);
+    switch (node.tokenKind) {
+        case TokenKind::_bool:
+        {
+            printf("%s", numericValue.value._bool ? "true" : "false");
+            break;
+        }
+        case TokenKind::_byte:
+        {
+            printf("%d", numericValue.value._byte);
+            break;
+        }
+        case TokenKind::_double:
+        {
+            printf("%f", numericValue.value._double);
+            break;
+        }
+        case TokenKind::_float:
+        {
+            printf("%f", numericValue.value._float);
+            break;
+        }
+        case TokenKind::_short:
+        {
+            printf("%hd", numericValue.value._short);
+            break;
+        }
+        case TokenKind::_ushort:
+        {
+            printf("%hu", numericValue.value._ushort);
+            break;
+        }
+        case TokenKind::_int:
+        {
+            printf("%d", numericValue.value._int);
+            break;
+        }
+        case TokenKind::_uint:
+        {
+            printf("%u", numericValue.value._uint);
+            break;
+        }
+        case TokenKind::_long:
+        {
+            printf("%ld", numericValue.value._long);
+            break;
+        }
+        case TokenKind::_ulong:
+        {
+            printf("%lu", numericValue.value._ulong);
+            break;
+        }
+        case TokenKind::_string:
+        case TokenKind::_char:
+        case TokenKind::none:
+        default:
+        {
+            assert(false);
+            break;
+        }
+    }
 }

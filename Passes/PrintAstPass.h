@@ -14,4 +14,5 @@ public:
     void visit(MethodAstNode& node) override;
     void visit(TypeAstNode& node) override;
     void visit(TransmitAstNode& node) override;
+    void visit(LiteralValueAstNode& node) override;
 };

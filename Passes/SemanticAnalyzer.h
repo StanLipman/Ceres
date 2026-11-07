@@ -40,7 +40,6 @@ private:
         MakePrimitiveType("bool", Type::TypeKind::_bool);
         MakePrimitiveType("byte", Type::TypeKind::_byte);
         MakePrimitiveType("char", Type::TypeKind::_char);
-        MakePrimitiveType("decimal", Type::TypeKind::_decimal);
         MakePrimitiveType("double", Type::TypeKind::_double);
         MakePrimitiveType("float", Type::TypeKind::_float);
         MakePrimitiveType("short", Type::TypeKind::_short);
