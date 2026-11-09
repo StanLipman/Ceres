@@ -8,6 +8,7 @@ class BodyAstNode;
 class ConstellationAstNode;
 class MethodAstNode;
 class TypeAstNode;
+class TransmitAstNode;
 
 class AstVisitor {
     public:
@@ -20,4 +21,5 @@ class AstVisitor {
     virtual void visit(ConstellationAstNode& node) = 0;
     virtual void visit(MethodAstNode& node) = 0;
     virtual void visit(TypeAstNode& node) = 0;
+    virtual void visit(TransmitAstNode& node) = 0;
 };

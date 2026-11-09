@@ -13,4 +13,5 @@ public:
     void visit(ConstellationAstNode& node) override;
     void visit(MethodAstNode& node) override;
     void visit(TypeAstNode& node) override;
+    void visit(TransmitAstNode& node) override;
 };

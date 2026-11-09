@@ -51,4 +51,6 @@ add_executable(Ceres
         Models/CompilerContext.h
         Models/Symbols/ConstellationSymbol.h
         Models/Symbols/MethodSymbol.h
+        Models/Ast/TransmitAstNode.cpp
+        Models/Ast/TransmitAstNode.h
 )

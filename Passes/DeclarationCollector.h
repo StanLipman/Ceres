@@ -120,4 +120,9 @@ public:
     {
         // Skip?
     }
+
+    void visit(TransmitAstNode& node) override
+    {
+        // Skip
+    }
 };
