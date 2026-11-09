@@ -56,4 +56,5 @@ add_executable(Ceres
         Models/Ast/LiteralValueAstNode.h
         Parser/LiteralValueParser.cpp
         Parser/LiteralValueParser.h
+        Passes/TypeChecker.h
 )

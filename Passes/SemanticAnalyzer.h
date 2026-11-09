@@ -3,6 +3,7 @@
 
 #include "DeclarationCollector.h"
 #include "DeclarationResolver.h"
+#include "TypeChecker.h"
 #include "Models/Scopes/Scope.h"
 
 class SemanticAnalyzer
@@ -25,12 +26,16 @@ public:
         //    When we do this, we know what we have, but not what it means.
         // 2. We resolve the types that we have collected in step 1.
         //    We go back over every ast node, and everywhere where we can find a reference to where a type is used, we check if one had been registered.
+        // 3. We check type compatibility for expressions, like if the return type and value match, or if you can assign a specific value to a variable
 
         DeclarationCollector declarationCollector(globalScope, compilerContext);
         declarationCollector.visit(*document);
 
         DeclarationResolver declarationResolver(globalScope);
         declarationResolver.visit(*document);
+
+        TypeChecker typeChecker;
+        typeChecker.visit(*document);
     }
 
 private:

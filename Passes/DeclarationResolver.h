@@ -3,6 +3,7 @@
 
 #include "AstVisitor.h"
 #include "Models/Ast/DocumentAstNode.h"
+#include "Models/Ast/TransmitAstNode.h"
 #include "Models/Scopes/Scope.h"
 #include "Models/Symbols/MethodSymbol.h"
 
@@ -99,6 +100,9 @@ public:
                 continue;
             }
         }
+
+        assert(node.returnTypeAstNode != nullptr);
+        node.returnTypeAstNode->accept(*this);
 
         assert(node.bodyAstNode != nullptr);
         node.bodyAstNode->accept(*this);
