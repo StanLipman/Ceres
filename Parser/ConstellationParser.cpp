@@ -19,8 +19,16 @@ void ConstellationParser::Parse(const std::shared_ptr<AstNode> parent, const std
         return;
     }
 
-    // TODO: Add handling for eternal
     // TODO: Add handling for structs
+
+    // TODO: Fix this: https://github.com/StanLipman/Ceres/issues/12
+    const Token eternalToken = parser->GetNextToken();
+    if (eternalToken.kind != TokenKind::eternal)
+    {
+        ParseManager::GiveError(eternalToken, "All constellations should be eternal (at least for now)");
+        return;
+    }
+
     const Token constellationToken = parser->GetNextToken();
     if (constellationToken.kind != TokenKind::constellation)
     {
@@ -28,8 +36,9 @@ void ConstellationParser::Parse(const std::shared_ptr<AstNode> parent, const std
         return;
     }
 
-    body->AddStatement(constellation);
-    constellation->SetAccessModifier(accessModifierToken.kind);
+    body->statementAstNodes.push_back(constellation);
+    assert(constellation->accessModifier == TokenKind::none);
+    constellation->accessModifier = accessModifierToken.kind;
 
     const Token constellationIdentifierToken = parser->GetNextToken();
     if (constellationIdentifierToken.kind != TokenKind::identifier)
@@ -38,7 +47,8 @@ void ConstellationParser::Parse(const std::shared_ptr<AstNode> parent, const std
         return;
     }
 
-    constellation->SetName(constellationIdentifierToken.text);
+    assert(constellation->name.empty());
+    constellation->name = constellationIdentifierToken.text;
 
     const Token leftCurlyToken = parser->GetNextToken();
     if (leftCurlyToken.kind != TokenKind::lCurly)
@@ -48,7 +58,9 @@ void ConstellationParser::Parse(const std::shared_ptr<AstNode> parent, const std
     }
 
     const auto bodyAstNode = std::make_shared<BodyAstNode>();
-    constellation->SetBody(bodyAstNode);
+    assert(constellation->bodyAstNode == nullptr);
+    constellation->bodyAstNode = bodyAstNode;
+
     parser->bodyParser->Parse(constellation, bodyAstNode);
 
     if (const Token rightCurlyToken = parser->GetNextToken(); rightCurlyToken.kind != TokenKind::rCurly)

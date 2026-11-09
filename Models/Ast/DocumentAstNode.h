@@ -4,25 +4,13 @@
 
 #include "AstNodes.h"
 #include "GalaxyAstNode.h"
+#include "Models/Scopes/Scope.h"
 
 class DocumentAstNode : public AstNode
 {
-private:
-    std::vector<std::shared_ptr<GalaxyAstNode>> galaxyAstNodes;
-
 public:
-    void AddGalaxyAstNode(const std::shared_ptr<GalaxyAstNode>& galaxyAstNode)
-    {
-        galaxyAstNodes.push_back(galaxyAstNode);
-    }
+    std::vector<std::shared_ptr<GalaxyAstNode>> galaxyAstNodes;
+    std::shared_ptr<Scope> scope;
 
-    void Print(const int depth) override
-    {
-        for (const auto& galaxyAstNode : galaxyAstNodes)
-        {
-            for (size_t i = 0; i < depth; i++)
-                printf("-");
-            galaxyAstNode->Print(depth + 1);
-        }
-    }
+    void accept(AstVisitor& visitor) override;
 };

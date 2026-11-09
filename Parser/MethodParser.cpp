@@ -13,7 +13,7 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
         return;
     }
 
-    body->AddStatement(method);
+    body->statementAstNodes.push_back(method);
 
     const Token accessModifierToken = parser->GetNextToken();
     if (!IsAccessModifier(accessModifierToken.kind))
@@ -22,14 +22,22 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
         return;
     }
 
-    method->SetAccessModifier(accessModifierToken.kind);
+    assert(method->accessModifier == TokenKind::none);
+    method->accessModifier = accessModifierToken.kind;
 
-    if (parser->PeekNextToken().kind == TokenKind::eternal)
+    const Token eternalToken = parser->GetNextToken();
+    if (eternalToken.kind != TokenKind::eternal)
     {
-        const Token eternalToken = parser->GetNextToken();
-        assert(eternalToken.kind == TokenKind::eternal);
-        method->SetIsEternal();
+        ParseManager::GiveError(eternalToken, "All methods should be eternal (at least for now)");
+        return;
     }
+    // TODO: Re-enable this when we make eternal optional again on methods https://github.com/StanLipman/Ceres/issues/12
+    // if (parser->PeekNextToken().kind == TokenKind::eternal)
+    // {
+    //     const Token eternalToken = parser->GetNextToken();
+    //     assert(eternalToken.kind == TokenKind::eternal);
+    //     method->SetIsEternal();
+    // }
 
     const Token returnTypeToken = parser->GetNextToken();
     if (returnTypeToken.kind != TokenKind::identifier && returnTypeToken.kind != TokenKind::vacuum)
@@ -39,8 +47,11 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
     }
 
     const auto primitiveReturnType = std::make_shared<TypeAstNode>();
-    primitiveReturnType->SetName(returnTypeToken.text);
-    method->SetReturnType(primitiveReturnType);
+    assert(primitiveReturnType->name.empty());
+    primitiveReturnType->name = returnTypeToken.text;
+
+    assert(method->returnTypeAstNode == nullptr);
+    method->returnTypeAstNode = primitiveReturnType;
 
     const Token identifierToken = parser->GetNextToken();
     if (identifierToken.kind != TokenKind::identifier)
@@ -49,7 +60,8 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
         return;
     }
 
-    method->SetName(identifierToken.text);
+    assert(method->name.empty());
+    method->name = identifierToken.text;
 
     const Token leftParenToken = parser->GetNextToken();
     if (leftParenToken.kind != TokenKind::lParen)
@@ -76,7 +88,8 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
     }
 
     const auto bodyAstNode = std::make_shared<BodyAstNode>();
-    method->SetBody(bodyAstNode);
+    assert(method->bodyAstNode == nullptr);
+    method->bodyAstNode = bodyAstNode;
     parser->bodyParser->Parse(method, bodyAstNode);
 
     const Token rightCurlyToken = parser->GetNextToken();
@@ -93,7 +106,7 @@ void MethodParser::ParseArgument(const std::shared_ptr<MethodAstNode>& method)
         parser->GetNextToken();
 
     const std::shared_ptr<ArgumentAstNode> argumentAstNode = std::make_shared<ArgumentAstNode>();
-    method->AddArgument(argumentAstNode);
+    method->argumentAstNodes.push_back(argumentAstNode);
 
     const Token argumentTypeToken = parser->GetNextToken();
     if (argumentTypeToken.kind != TokenKind::identifier)
@@ -103,8 +116,11 @@ void MethodParser::ParseArgument(const std::shared_ptr<MethodAstNode>& method)
     }
 
     const std::shared_ptr<TypeAstNode> typeAstNode = std::make_shared<TypeAstNode>();
-    typeAstNode->SetName(argumentTypeToken.text);
-    argumentAstNode->SetType(typeAstNode);
+    assert(typeAstNode->name.empty());
+    typeAstNode->name = argumentTypeToken.text;
+
+    assert(argumentAstNode->typeAstNode == nullptr);
+    argumentAstNode->typeAstNode = typeAstNode;
 
     const Token argumentNameToken = parser->GetNextToken();
     if (argumentNameToken.kind != TokenKind::identifier)
@@ -113,5 +129,6 @@ void MethodParser::ParseArgument(const std::shared_ptr<MethodAstNode>& method)
         return;
     }
 
-    argumentAstNode->SetName(argumentNameToken.text);
+    assert(argumentAstNode->name.empty());
+    argumentAstNode->name = argumentNameToken.text;
 }
