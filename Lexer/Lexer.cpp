@@ -8,10 +8,11 @@ void Lexer::Lex(const std::string& fileName)
     size_t lineNr = 0;
     while (getline (sourceFile, currentLine)) {
         lineNr++;
-        LexLine(currentLine, lineNr);
+        LexLine(fileName, currentLine, lineNr);
     }
 
     SourceLocation sourceLocation {
+        .filePath = fileName,
         .line = ++lineNr,
         .column = 0,
     };
@@ -20,7 +21,7 @@ void Lexer::Lex(const std::string& fileName)
     sourceFile.close();
 }
 
-void Lexer::LexLine(const std::string& line, const size_t lineNr)
+void Lexer::LexLine(const std::string& filePath, const std::string& line, const size_t lineNr)
 {
     std::string current;
     size_t startCol = 0;
@@ -47,7 +48,7 @@ void Lexer::LexLine(const std::string& line, const size_t lineNr)
                 current.push_back(stringChar);
             }
 
-            HandleCompleteToken(current, TokenKind::_string, lineNr, startCol);
+            HandleCompleteToken(current, TokenKind::_string, filePath, lineNr, startCol);
 
             continue;
         }
@@ -64,7 +65,7 @@ void Lexer::LexLine(const std::string& line, const size_t lineNr)
                 current.push_back(charChar);
             }
 
-            HandleCompleteToken(current, TokenKind::_char, lineNr, startCol);
+            HandleCompleteToken(current, TokenKind::_char, filePath, lineNr, startCol);
 
             continue;
         }
@@ -89,40 +90,37 @@ void Lexer::LexLine(const std::string& line, const size_t lineNr)
             }
 
             if (isFloat)
-                HandleCompleteToken(current, TokenKind::_float, lineNr, startCol);
+                HandleCompleteToken(current, TokenKind::_float, filePath, lineNr, startCol);
             else
-                HandleCompleteToken(current, TokenKind::_int, lineNr, startCol);
+                HandleCompleteToken(current, TokenKind::_int, filePath, lineNr, startCol);
 
             continue;
         }
 
         if (current == "true" || current == "false")
         {
-            HandleCompleteToken(current, TokenKind::_bool, lineNr, startCol);
+            HandleCompleteToken(current, TokenKind::_bool, filePath, lineNr, startCol);
             continue;
         }
 
         if (tokenKindMap.contains(current))
         {
-            HandleCompleteToken(current, tokenKindMap[current], lineNr, startCol);
+            HandleCompleteToken(current, tokenKindMap[current], filePath, lineNr, startCol);
             continue;
         }
 
         if ((std::isspace(c) || tokenKindMap.contains(std::string {nextChar})) && !current.empty())
         {
-            HandleCompleteToken(current, TokenKind::identifier, lineNr, startCol);
+            HandleCompleteToken(current, TokenKind::identifier, filePath, lineNr, startCol);
             continue;
         }
     }
 }
 
-void Lexer::LexNumericValue(const std::string& line, size_t lineNr)
-{
-}
-
-void Lexer::HandleCompleteToken(std::string& tokenText, TokenKind tokenKind, const size_t lineNr, const size_t startCol)
+void Lexer::HandleCompleteToken(std::string& tokenText, TokenKind tokenKind, const std::string& filePath, const size_t lineNr, const size_t startCol)
 {
     SourceLocation sourceLocation{
+        .filePath = filePath,
         .line = lineNr,
         .column = startCol,
     };

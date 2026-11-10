@@ -12,7 +12,7 @@ void LiteralStringValueParser::Parse(const std::shared_ptr<AstNode> parent, cons
 
         if (literalToken.kind == TokenKind::_char && literalToken.text.size() > 1)
         {
-            ParseManager::GiveError(literalToken, "Char must be 1 character");
+            parser->GiveErrorByMessage(literalToken, "Char must be 1 character");
             return;
         }
 

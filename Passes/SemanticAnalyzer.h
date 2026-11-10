@@ -10,11 +10,12 @@ class SemanticAnalyzer
 {
 private:
     std::shared_ptr<Scope> globalScope = std::make_shared<Scope>(Scope::ScopeTypes::global);
-    CompilerContext compilerContext;
+    CompilerContext* compilerContext;
 
 public:
-    SemanticAnalyzer()
+    explicit SemanticAnalyzer(CompilerContext* compilerContext)
     {
+        this->compilerContext = compilerContext;
         CreatePrimitiveTypes();
     }
 
@@ -31,7 +32,7 @@ public:
         DeclarationCollector declarationCollector(globalScope, compilerContext);
         declarationCollector.visit(*document);
 
-        DeclarationResolver declarationResolver(globalScope);
+        DeclarationResolver declarationResolver(globalScope, compilerContext);
         declarationResolver.visit(*document);
 
         TypeChecker typeChecker;
@@ -60,12 +61,12 @@ private:
     {
         const auto symbol = std::make_shared<ConstellationSymbol>();
         symbol->name = name;
-        symbol->symbolId = compilerContext.GetNextSymbolId();
+        symbol->symbolId = compilerContext->GetNextSymbolId();
         symbol->declaration = nullptr; // We do not have this
 
         const auto type = std::make_shared<ConstellationType>();
         type->declarationSymbolId = symbol->symbolId;
-        type->id = compilerContext.GetNextTypeId();
+        type->id = compilerContext->GetNextTypeId();
         type->kind = kind;
 
         symbol->type = type;

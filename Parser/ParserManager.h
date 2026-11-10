@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
-#include <stack>
 #include <vector>
+#include <format>
 
 #include "BodyParser.h"
 #include "ConstellationParser.h"
@@ -20,6 +20,8 @@ private:
     std::shared_ptr<DocumentAstNode> documentAstNode;
     size_t currentTokenIndex = 0;
 
+    CompilerContext* compilerContext;
+
 public:
     std::shared_ptr<DocumentParser> documentParser;
     std::shared_ptr<GalaxyParser> galaxyParser;
@@ -29,8 +31,10 @@ public:
     std::shared_ptr<LiteralStringValueParser> literalStringValueParser;
     std::shared_ptr<LiteralNumericValueParser> literalNumericValueParser;
 
-    explicit ParseManager(const std::vector<Token>& tokens)
+    explicit ParseManager(CompilerContext* compilerContext, const std::vector<Token>& tokens)
     {
+        this->compilerContext = compilerContext;
+
         this->tokens = tokens;
 
         this->documentParser = std::make_shared<DocumentParser>(this);
@@ -69,9 +73,16 @@ public:
         documentParser->Parse(nullptr, this->documentAstNode);
     }
 
-    static void GiveError(const Token& token, const std::string& message)
+    void GiveError(const Token& token, const TokenKind expectedTokenKind) const
     {
+        std::string formattedMessage = "Expected '" + GetTokenKindText(expectedTokenKind) + "' but got '" + GetTokenKindText(token.kind) + "'";
+        compilerContext->compilationErrors.emplace_back(formattedMessage, token.location);
         // assert(false);
-        printf("Syntax error at %lu:%lu.\n\tmessage: %s. Got %s\n", token.location.line, token.location.column, message.c_str(), GetTokenKindText(token.kind).c_str());
+    }
+
+    void GiveErrorByMessage(const Token& token, const std::string& message) const
+    {
+        compilerContext->compilationErrors.emplace_back(message, token.location);
+        // assert(false);
     }
 };

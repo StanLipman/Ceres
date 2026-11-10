@@ -18,7 +18,7 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
     const Token accessModifierToken = parser->GetNextToken();
     if (!IsAccessModifier(accessModifierToken.kind))
     {
-        ParseManager::GiveError(accessModifierToken, "Expected access modifier");
+        parser->GiveErrorByMessage(accessModifierToken, "Expected access modifier");
         return;
     }
 
@@ -28,7 +28,7 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
     const Token eternalToken = parser->GetNextToken();
     if (eternalToken.kind != TokenKind::eternal)
     {
-        ParseManager::GiveError(eternalToken, "All methods should be eternal (at least for now)");
+        parser->GiveErrorByMessage(eternalToken, "All methods should be eternal (at least for now)");
         return;
     }
     // TODO: Re-enable this when we make eternal optional again on methods https://github.com/StanLipman/Ceres/issues/12
@@ -42,11 +42,12 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
     const Token returnTypeToken = parser->GetNextToken();
     if (returnTypeToken.kind != TokenKind::identifier && returnTypeToken.kind != TokenKind::vacuum)
     {
-        ParseManager::GiveError(returnTypeToken, "Expected return type");
+        parser->GiveError(returnTypeToken, TokenKind::identifier);
         return;
     }
 
     const auto primitiveReturnType = std::make_shared<TypeAstNode>();
+    primitiveReturnType->token = returnTypeToken;
     assert(primitiveReturnType->name.empty());
     primitiveReturnType->name = returnTypeToken.text;
 
@@ -56,17 +57,18 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
     const Token identifierToken = parser->GetNextToken();
     if (identifierToken.kind != TokenKind::identifier)
     {
-        ParseManager::GiveError(identifierToken, "Expected identifier");
+        parser->GiveError(identifierToken, TokenKind::identifier);
         return;
     }
 
     assert(method->name.empty());
+    method->token = identifierToken;
     method->name = identifierToken.text;
 
     const Token leftParenToken = parser->GetNextToken();
     if (leftParenToken.kind != TokenKind::lParen)
     {
-        ParseManager::GiveError(leftParenToken, "Expected left parenthesis");
+        parser->GiveError(leftParenToken, TokenKind::lParen);
         return;
     }
 
@@ -76,18 +78,20 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
     const Token rightParenToken = parser->GetNextToken();
     if (rightParenToken.kind != TokenKind::rParen)
     {
-        ParseManager::GiveError(rightParenToken, "Expected right parenthesis");
+        parser->GiveError(rightParenToken, TokenKind::rParen);
         return;
     }
 
     const Token leftCurlyToken = parser->GetNextToken();
     if (leftCurlyToken.kind != TokenKind::lCurly)
     {
-        ParseManager::GiveError(leftCurlyToken, "Expected left curly");
+        parser->GiveError(leftCurlyToken, TokenKind::lCurly);
         return;
     }
 
     const auto bodyAstNode = std::make_shared<BodyAstNode>();
+    bodyAstNode->leftCurlyToken = leftCurlyToken;
+
     assert(method->bodyAstNode == nullptr);
     method->bodyAstNode = bodyAstNode;
     parser->bodyParser->Parse(method, bodyAstNode);
@@ -95,8 +99,11 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
     const Token rightCurlyToken = parser->GetNextToken();
     if (rightCurlyToken.kind != TokenKind::rCurly)
     {
-        ParseManager::GiveError(rightCurlyToken, "Expected right curly");
-        return;
+        parser->GiveError(rightCurlyToken, TokenKind::rCurly);
+    }
+    else
+    {
+        bodyAstNode->rightCurlyToken = rightCurlyToken;
     }
 }
 
@@ -111,11 +118,12 @@ void MethodParser::ParseArgument(const std::shared_ptr<MethodAstNode>& method)
     const Token argumentTypeToken = parser->GetNextToken();
     if (argumentTypeToken.kind != TokenKind::identifier)
     {
-        ParseManager::GiveError(argumentTypeToken, "Expected type identifier");
+        parser->GiveError(argumentTypeToken, TokenKind::identifier);
         return;
     }
 
     const std::shared_ptr<TypeAstNode> typeAstNode = std::make_shared<TypeAstNode>();
+    typeAstNode->token = argumentTypeToken;
     assert(typeAstNode->name.empty());
     typeAstNode->name = argumentTypeToken.text;
 
@@ -125,7 +133,7 @@ void MethodParser::ParseArgument(const std::shared_ptr<MethodAstNode>& method)
     const Token argumentNameToken = parser->GetNextToken();
     if (argumentNameToken.kind != TokenKind::identifier)
     {
-        ParseManager::GiveError(argumentNameToken, "Expected name identifier");
+        parser->GiveError(argumentNameToken, TokenKind::identifier);
         return;
     }
 

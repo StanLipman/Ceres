@@ -10,7 +10,7 @@ void GalaxyParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
 
     if (identifierToken.kind != TokenKind::identifier)
     {
-        ParseManager::GiveError(identifierToken, "Expected identifier");
+        parser->GiveError(identifierToken, TokenKind::identifier);
         return;
     }
 
@@ -20,11 +20,12 @@ void GalaxyParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
     const Token leftCurlyToken = parser->GetNextToken();
     if (leftCurlyToken.kind != TokenKind::lCurly)
     {
-        ParseManager::GiveError(leftCurlyToken, "Expected left curly");
+        parser->GiveError(leftCurlyToken, TokenKind::lCurly);
         return;
     }
 
     const auto bodyAstNode = std::make_shared<BodyAstNode>();
+    bodyAstNode->leftCurlyToken = leftCurlyToken;
 
     assert(galaxy->bodyAstNode == nullptr);
     galaxy->bodyAstNode = bodyAstNode;
@@ -33,7 +34,11 @@ void GalaxyParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
 
     if (const Token rightCurlyToken = parser->GetNextToken(); rightCurlyToken.kind != TokenKind::rCurly)
     {
-        ParseManager::GiveError(rightCurlyToken, "Expected right curly");
+        parser->GiveError(rightCurlyToken, TokenKind::rCurly);
         return;
+    }
+    else
+    {
+        bodyAstNode->rightCurlyToken = rightCurlyToken;
     }
 }

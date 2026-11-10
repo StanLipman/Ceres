@@ -3,17 +3,16 @@
 #include <cstdint>
 
 #include "AstNodes.h"
+#include "Models/Token.h"
 #include "Models/TokenKind.h"
 
 class LiteralValueAstNode : public AstNode
 {
 public:
     TokenKind tokenKind = TokenKind::none;
+    Token token = EmptyToken;
 
-    explicit LiteralValueAstNode(const TokenKind tokenKind)
-    {
-        this->tokenKind = tokenKind;
-    }
+    explicit LiteralValueAstNode(const Token& token) : tokenKind(token.kind), token(token) { }
 
     void accept(AstVisitor& visitor) override;
 };
@@ -22,7 +21,7 @@ class LiteralStringValueAstNode : public LiteralValueAstNode {
 public:
     std::string value;
 
-    explicit LiteralStringValueAstNode(const TokenKind tokenKind) : LiteralValueAstNode(tokenKind) { }
+    explicit LiteralStringValueAstNode(const Token& token) : LiteralValueAstNode(token) { }
 };
 
 class LiteralNumericValueAstNode : public LiteralValueAstNode
@@ -43,5 +42,5 @@ public:
         uint64_t _ulong;
     } value;
 
-    explicit LiteralNumericValueAstNode(const TokenKind tokenKind) : LiteralValueAstNode(tokenKind), value(false) { }
+    explicit LiteralNumericValueAstNode(const Token& token) : LiteralValueAstNode(token), value(false) { }
 };
