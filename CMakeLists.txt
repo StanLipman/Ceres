@@ -60,5 +60,6 @@ add_executable(Ceres
         Passes/TypeChecker.h
         "MetaData/PE Headers/MsDosHeader.h"
         "MetaData/PE Headers/FileHeader.h"
+        "MetaData/PE Headers/OptionalHeader.h"
         MetaData/CreateMetaData.h
 )

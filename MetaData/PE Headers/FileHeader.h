@@ -1,13 +1,10 @@
 #pragma once
 
 // II.25.2.2 PE File Header
-inline std::vector<uint8_t> GetPEFileHeader()
+inline std::vector<uint8_t> GetPEFileHeaderTemplate()
 {
 	std::vector<uint8_t> bytes = {
-		// Not really sure where these bytes come from, but they seem to appear in every dll I (Stan) inspected
-		0x50, 0x45, 0x00, 0x00,
-
-		// Machine, Offset 0, Size 2
+		// Machine, Offset 0, Size 2, TODO make linux compatible when the time is ripe, https://github.com/StanLipman/Ceres/issues/22
 		0x4c, 0x01,
 
 		// TODO correct size here, for now 0x03 as seen in other dll's, https://github.com/StanLipman/Ceres/issues/3
@@ -23,11 +20,11 @@ inline std::vector<uint8_t> GetPEFileHeader()
 		// Number of Symbols, Offset 12, Size 4, Always 0 II.24.1
 		0x00, 0x00, 0x00, 0x00,
 
-		// Optional Header Size, Offset 16, Size 2, Temporary
-		0x00, 0x00,
+		// Optional Header Size, Offset 16, Size 2
+		0xE0, 0x00,
 
-		// Characteristics, Offset 18, Size 2, https://learn.microsoft.com/en-us/dotnet/api/system.reflection.portableexecutable.characteristics?view=net-10.0
-		0x22, 0x00,
+		// Characteristics, Offset 18, Size 2, IMAGE_FILE_EXECUTABLE_IMAGE | IMAGE_FILE_DLL https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#characteristics
+		0x02, 0x20,
 	};
 
 	return bytes;
