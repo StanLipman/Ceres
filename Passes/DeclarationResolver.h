@@ -134,6 +134,11 @@ public:
         // Skip
     }
 
+    void visit(VariableAstNode& node) override
+    {
+        // skip
+    }
+
 private:
     std::shared_ptr<Type> ResolveType(const TypeAstNode& typeAstNode) const
     {

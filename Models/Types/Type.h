@@ -29,6 +29,45 @@ public:
     TypeKind kind;
 
     virtual ~Type() = default;
+
+    [[nodiscard]] std::string GetTypeKindText() const
+    {
+        switch (kind) {
+        case _bool:
+            return "bool";
+        case _byte:
+            return "byte";
+        case _char:
+            return "char";
+        case _double:
+            return "double";
+        case _float:
+            return "float";
+        case _short:
+            return "short";
+        case _ushort:
+            return "ushort";
+        case _int:
+            return "int";
+        case _uint:
+            return "uint";
+        case _long:
+            return "long";
+        case _ulong:
+            return "ulong";
+        case string:
+            return "string";
+        case vacuum:
+            return "vacuum";
+        case constellation:
+            return "constellation";
+        case method:
+            return "method";
+        default:
+            assert(false);
+            return "unknown type";
+        }
+    }
 };
 
 class ConstellationType : public Type

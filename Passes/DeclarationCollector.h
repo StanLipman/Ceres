@@ -133,4 +133,9 @@ public:
     {
         // Skip
     }
+
+    void visit(VariableAstNode& node) override
+    {
+        // skip
+    }
 };
