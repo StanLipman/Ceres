@@ -10,6 +10,7 @@ class MethodAstNode;
 class TypeAstNode;
 class TransmitAstNode;
 class LiteralValueAstNode;
+class VariableAstNode;
 
 class AstVisitor {
     public:
@@ -24,4 +25,5 @@ class AstVisitor {
     virtual void visit(TypeAstNode& node) = 0;
     virtual void visit(TransmitAstNode& node) = 0;
     virtual void visit(LiteralValueAstNode& node) = 0;
+    virtual void visit(VariableAstNode& node) = 0;
 };

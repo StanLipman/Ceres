@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <vector>
 #include "./Models/Token.h"
 
 using SymbolId = uint64_t;
@@ -23,6 +24,8 @@ private:
     TypeId nextTypeId = 1;
 public:
     std::vector<CompilationError> compilationErrors;
+    bool printAst = false;
+    bool writeDll = false;
 
     SymbolId GetNextSymbolId()
     {

@@ -32,7 +32,7 @@ void BodyParser::Parse(const std::shared_ptr<AstNode> parent, const std::shared_
         return;
     }
 
-    if (const auto methodAstNode = std::dynamic_pointer_cast<MethodAstNode>(parent))
+    if (const auto methodAstNode = std::dynamic_pointer_cast<MethodAstNode>(parent); methodAstNode != nullptr)
     {
         const Token nextToken = parser->PeekNextToken();
         if (nextToken.kind == TokenKind::transmit)
@@ -40,32 +40,10 @@ void BodyParser::Parse(const std::shared_ptr<AstNode> parent, const std::shared_
             const Token transmitToken = parser->GetNextToken();
 
             const auto transmitAstNode = std::make_shared<TransmitAstNode>();
-            transmitAstNode->token = nextToken;
+            transmitAstNode->token = transmitToken;
 
-            assert(methodAstNode->bodyAstNode != nullptr);
-            methodAstNode->bodyAstNode->statementAstNodes.push_back(transmitAstNode);
-
-            if (const Token peekToken = parser->PeekNextToken(); IsLiteralValueTokenKind(peekToken.kind))
-            {
-                assert(transmitAstNode->transmitValue == nullptr);
-
-                if (const Token literalToken = parser->PeekNextToken(); literalToken.kind == TokenKind::_string || literalToken.kind == TokenKind::_char)
-                {
-                    auto stringAstNode = std::make_shared<LiteralStringValueAstNode>(literalToken);
-                    parser->literalStringValueParser->Parse(transmitAstNode, stringAstNode);
-                }
-                else
-                {
-                    auto numericAstNode = std::make_shared<LiteralNumericValueAstNode>(literalToken);
-                    parser->literalNumericValueParser->Parse(transmitAstNode, numericAstNode);
-                }
-            }
-
-            if (const Token token = parser->GetNextToken(); token.kind != TokenKind::semicolon)
-            {
-                parser->GiveError(token, TokenKind::semicolon);
-                return;
-            }
+            parser->transmitParser->Parse(methodAstNode, transmitAstNode);
+            return;
         }
     }
 

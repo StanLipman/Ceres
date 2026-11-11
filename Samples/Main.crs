@@ -21,5 +21,10 @@ galaxy Samples {
         }
 
         universal eternal Program Test3(int input, string str) { }
+
+        universal eternal int ReturnIntArgument(int input)
+        {
+            transmit input;
+        }
     }
 }

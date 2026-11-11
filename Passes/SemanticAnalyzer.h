@@ -35,7 +35,7 @@ public:
         DeclarationResolver declarationResolver(globalScope, compilerContext);
         declarationResolver.visit(*document);
 
-        TypeChecker typeChecker;
+        TypeChecker typeChecker(compilerContext);
         typeChecker.visit(*document);
     }
 
