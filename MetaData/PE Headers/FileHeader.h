@@ -3,7 +3,7 @@
 // II.25.2.2 PE File Header
 inline std::vector<uint8_t> GetPEFileHeaderTemplate()
 {
-	std::vector<uint8_t> bytes = {
+	return {
 		// Machine, Offset 0, Size 2, TODO make linux compatible when the time is ripe, https://github.com/StanLipman/Ceres/issues/22
 		0x4c, 0x01,
 
@@ -26,6 +26,4 @@ inline std::vector<uint8_t> GetPEFileHeaderTemplate()
 		// Characteristics, Offset 18, Size 2, IMAGE_FILE_EXECUTABLE_IMAGE | IMAGE_FILE_DLL https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#characteristics
 		0x02, 0x20,
 	};
-
-	return bytes;
 }
