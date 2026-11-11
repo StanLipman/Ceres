@@ -77,14 +77,12 @@ public:
 
     void GiveError(const Token& token, const TokenKind expectedTokenKind) const
     {
-        std::string formattedMessage = "Expected '" + GetTokenKindText(expectedTokenKind) + "' but got '" + GetTokenKindText(token.kind) + "'";
-        compilerContext->compilationErrors.emplace_back(formattedMessage, token.location);
-        // assert(false);
+        const std::string formattedMessage = "Expected '" + GetTokenKindText(expectedTokenKind) + "' but got '" + GetTokenKindText(token.kind) + "'";
+        GiveErrorByMessage(token, formattedMessage);
     }
 
     void GiveErrorByMessage(const Token& token, const std::string& message) const
     {
         compilerContext->compilationErrors.emplace_back(message, token.location);
-        // assert(false);
     }
 };

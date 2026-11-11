@@ -7,6 +7,7 @@ include_directories(.)
 
 add_executable(Ceres
         Main.cpp
+        FileIO/WriteDllFile.h
         Lexer/Lexer.cpp
         Lexer/Lexer.h
         Models/Token.h

@@ -32,13 +32,12 @@ void GalaxyParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
 
     parser->bodyParser->Parse(galaxy, bodyAstNode);
 
-    if (const Token rightCurlyToken = parser->GetNextToken(); rightCurlyToken.kind != TokenKind::rCurly)
+    const Token rightCurlyToken = parser->GetNextToken();
+    if (rightCurlyToken.kind != TokenKind::rCurly)
     {
         parser->GiveError(rightCurlyToken, TokenKind::rCurly);
         return;
     }
-    else
-    {
-        bodyAstNode->rightCurlyToken = rightCurlyToken;
-    }
+
+    bodyAstNode->rightCurlyToken = rightCurlyToken;
 }
