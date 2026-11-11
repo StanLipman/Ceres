@@ -13,6 +13,7 @@ public:
     std::string name;
     std::shared_ptr<BodyAstNode> bodyAstNode;
     std::shared_ptr<Scope> scope;
+    Token token = EmptyToken;
 
     void accept(AstVisitor& visitor) override;
 };

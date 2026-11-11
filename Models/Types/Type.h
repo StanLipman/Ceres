@@ -11,7 +11,6 @@ public:
         _bool,
         _byte,
         _char,
-        _decimal,
         _double,
         _float,
         _short,

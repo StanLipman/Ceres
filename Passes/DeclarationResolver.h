@@ -3,6 +3,7 @@
 
 #include "AstVisitor.h"
 #include "Models/Ast/DocumentAstNode.h"
+#include "Models/Ast/TransmitAstNode.h"
 #include "Models/Scopes/Scope.h"
 #include "Models/Symbols/MethodSymbol.h"
 
@@ -10,9 +11,10 @@ class DeclarationResolver: AstVisitor
 {
 private:
     std::shared_ptr<Scope> currentScope;
+    CompilerContext* compilerContext;
 
 public:
-    explicit DeclarationResolver(const std::shared_ptr<Scope>& globalScope) : currentScope(globalScope) {}
+    explicit DeclarationResolver(const std::shared_ptr<Scope>& globalScope, CompilerContext* compilerContext) : currentScope(globalScope), compilerContext(compilerContext) {}
 
     void visit(DocumentAstNode& node) override
     {
@@ -61,7 +63,8 @@ public:
 
         if (symbol == nullptr)
         {
-            printf("Missing method symbol\n");
+            std::string formattedMessage = "Missing method symbol";
+            compilerContext->compilationErrors.emplace_back(formattedMessage, node.token.location);
             return;
         }
 
@@ -95,10 +98,14 @@ public:
 
             if (!currentScope->Insert(variableSymbol))
             {
-                printf("Duplicate parameter '%s'\n", argumentAstNode->name.c_str());
+                std::string formattedMessage = "Duplicate parameter '" + argumentAstNode->name + "'";
+                compilerContext->compilationErrors.emplace_back(formattedMessage, argumentAstNode->typeAstNode->token.location);
                 continue;
             }
         }
+
+        assert(node.returnTypeAstNode != nullptr);
+        node.returnTypeAstNode->accept(*this);
 
         assert(node.bodyAstNode != nullptr);
         node.bodyAstNode->accept(*this);
@@ -122,15 +129,21 @@ public:
         // Skip
     }
 
+    void visit(LiteralValueAstNode& node) override
+    {
+        // Skip
+    }
+
 private:
-    std::shared_ptr<Type> ResolveType(TypeAstNode& typeAstNode) const
+    std::shared_ptr<Type> ResolveType(const TypeAstNode& typeAstNode) const
     {
         assert(!typeAstNode.name.empty());
         const std::shared_ptr<Symbol> symbol = currentScope->Lookup(typeAstNode.name);
 
         if (symbol == nullptr)
         {
-            printf("Unknown type: %s\n", typeAstNode.name.c_str());
+            std::string formattedMessage = "Unknown type: " + typeAstNode.name;
+            compilerContext->compilationErrors.emplace_back(formattedMessage, typeAstNode.token.location);
             return nullptr;;
         }
 
@@ -138,7 +151,8 @@ private:
 
         if (constellationSymbol == nullptr)
         {
-            printf("%s is not a type\n", typeAstNode.name.c_str());
+            std::string formattedMessage = typeAstNode.name + "is not a type";
+            compilerContext->compilationErrors.emplace_back(formattedMessage, typeAstNode.token.location);
             return nullptr;
         }
 

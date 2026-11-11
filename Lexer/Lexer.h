@@ -19,6 +19,6 @@ public:
 
 
 private:
-    void LexLine(const std::string& line, size_t lineNr);
-    void HandleCompleteToken(std::string& tokenText, TokenKind tokenKind, size_t lineNr, size_t startCol);
+    void LexLine(const std::string& filePath, const std::string& line, size_t lineNr);
+    void HandleCompleteToken(std::string& tokenText, TokenKind tokenKind, const std::string& filePath, size_t lineNr, size_t startCol);
 };

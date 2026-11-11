@@ -19,6 +19,7 @@ public:
     std::vector<std::shared_ptr<ArgumentAstNode>> argumentAstNodes;
     std::shared_ptr<Scope> scope;
     bool isEternal = false;
+    Token token = EmptyToken;
 
     void accept(AstVisitor& visitor) override;
 };

@@ -15,14 +15,20 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    CompilerContext compilerContext;
+
     Lexer lexer;
     lexer.Lex(std::string(argv[1]));
-    ParseManager parseManager(lexer.GetTokens());
+
+    ParseManager parseManager(&compilerContext, lexer.GetTokens());
 
     parseManager.BuildAst();
 
-    const SemanticAnalyzer semanticAnalyzer;
+    const SemanticAnalyzer semanticAnalyzer(&compilerContext);
     semanticAnalyzer.analyze(parseManager.GetDocumentAstNode());
+
+    for (const auto& compilationError : compilerContext.compilationErrors)
+        compilationError.PrintError();
 
     for (size_t i = 2; i < argc; i++)
     {

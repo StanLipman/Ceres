@@ -3,17 +3,19 @@
 
 #include "DeclarationCollector.h"
 #include "DeclarationResolver.h"
+#include "TypeChecker.h"
 #include "Models/Scopes/Scope.h"
 
 class SemanticAnalyzer
 {
 private:
     std::shared_ptr<Scope> globalScope = std::make_shared<Scope>(Scope::ScopeTypes::global);
-    CompilerContext compilerContext;
+    CompilerContext* compilerContext;
 
 public:
-    SemanticAnalyzer()
+    explicit SemanticAnalyzer(CompilerContext* compilerContext)
     {
+        this->compilerContext = compilerContext;
         CreatePrimitiveTypes();
     }
 
@@ -25,12 +27,16 @@ public:
         //    When we do this, we know what we have, but not what it means.
         // 2. We resolve the types that we have collected in step 1.
         //    We go back over every ast node, and everywhere where we can find a reference to where a type is used, we check if one had been registered.
+        // 3. We check type compatibility for expressions, like if the return type and value match, or if you can assign a specific value to a variable
 
         DeclarationCollector declarationCollector(globalScope, compilerContext);
         declarationCollector.visit(*document);
 
-        DeclarationResolver declarationResolver(globalScope);
+        DeclarationResolver declarationResolver(globalScope, compilerContext);
         declarationResolver.visit(*document);
+
+        TypeChecker typeChecker;
+        typeChecker.visit(*document);
     }
 
 private:
@@ -40,7 +46,6 @@ private:
         MakePrimitiveType("bool", Type::TypeKind::_bool);
         MakePrimitiveType("byte", Type::TypeKind::_byte);
         MakePrimitiveType("char", Type::TypeKind::_char);
-        MakePrimitiveType("decimal", Type::TypeKind::_decimal);
         MakePrimitiveType("double", Type::TypeKind::_double);
         MakePrimitiveType("float", Type::TypeKind::_float);
         MakePrimitiveType("short", Type::TypeKind::_short);
@@ -56,12 +61,12 @@ private:
     {
         const auto symbol = std::make_shared<ConstellationSymbol>();
         symbol->name = name;
-        symbol->symbolId = compilerContext.GetNextSymbolId();
+        symbol->symbolId = compilerContext->GetNextSymbolId();
         symbol->declaration = nullptr; // We do not have this
 
         const auto type = std::make_shared<ConstellationType>();
         type->declarationSymbolId = symbol->symbolId;
-        type->id = compilerContext.GetNextTypeId();
+        type->id = compilerContext->GetNextTypeId();
         type->kind = kind;
 
         symbol->type = type;

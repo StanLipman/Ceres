@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <string>
 
 #include "AstVisitor.h"
 #include "Models/Ast/DocumentAstNode.h"
@@ -11,10 +12,10 @@ class DeclarationCollector : AstVisitor
 {
 private:
     std::shared_ptr<Scope> currentScope;
-    CompilerContext compilerContext;
+    CompilerContext* compilerContext;
 
 public:
-    explicit DeclarationCollector(const std::shared_ptr<Scope>& globalScope, const CompilerContext& compilerContext) : currentScope(globalScope), compilerContext(compilerContext) {}
+    explicit DeclarationCollector(const std::shared_ptr<Scope>& globalScope, CompilerContext* compilerContext) : currentScope(globalScope), compilerContext(compilerContext) {}
 
     void visit(DocumentAstNode& node) override
     {
@@ -59,13 +60,13 @@ public:
     void visit(ConstellationAstNode& node) override
     {
         const auto symbol = std::make_shared<ConstellationSymbol>();
-        symbol->symbolId = compilerContext.GetNextSymbolId();
+        symbol->symbolId = compilerContext->GetNextSymbolId();
         assert(!node.name.empty());
         symbol->name = node.name;
         symbol->declaration = &node;
 
         const auto type = std::make_shared<ConstellationType>();
-        type->id = compilerContext.GetNextTypeId();
+        type->id = compilerContext->GetNextTypeId();
         type->kind = Type::TypeKind::constellation;
         type->declarationSymbolId = symbol->symbolId;
 
@@ -73,7 +74,8 @@ public:
 
         if (!currentScope->Insert(symbol))
         {
-            printf("Constellation '%s' already exists\n", symbol->name.c_str());
+            std::string formattedMessage = "Constellation '" + symbol->name + "' already exists";
+            compilerContext->compilationErrors.emplace_back(formattedMessage, node.token.location);
             return;
         }
 
@@ -94,13 +96,14 @@ public:
         assert(!node.name.empty());
 
         const auto symbol = std::make_shared<MethodSymbol>();
-        symbol->symbolId = compilerContext.GetNextSymbolId();
+        symbol->symbolId = compilerContext->GetNextSymbolId();
         symbol->name = node.name;
         symbol->declaration = &node;
 
         if (!currentScope->Insert(symbol))
         {
-            printf("Method '%s' already exists\n", symbol->name.c_str());
+            std::string formattedMessage = "Method '" + symbol->name + "' already exists";
+            compilerContext->compilationErrors.emplace_back(formattedMessage, node.token.location);
             return;
         }
 
@@ -122,6 +125,11 @@ public:
     }
 
     void visit(TransmitAstNode& node) override
+    {
+        // Skip
+    }
+
+    void visit(LiteralValueAstNode& node) override
     {
         // Skip
     }

@@ -3,6 +3,7 @@
 #include "ParserManager.h"
 #include "Models/Token.h"
 #include "Models/Ast/ConstellationAstNode.h"
+#include "Models/Ast/LiteralValueAstNode.h"
 #include "Models/Ast/MethodAstNode.h"
 #include "Models/Ast/TransmitAstNode.h"
 
@@ -13,6 +14,7 @@ void BodyParser::Parse(const std::shared_ptr<AstNode> parent, const std::shared_
     if (const auto galaxyAstNode = std::dynamic_pointer_cast<GalaxyAstNode>(parent))
     {
         const std::shared_ptr<ConstellationAstNode> constellationAstNode = std::make_shared<ConstellationAstNode>();
+        // constellationAstNode->token is set in the constellationParser
         parser->constellationParser->Parse(body, constellationAstNode);
         return;
     }
@@ -24,6 +26,7 @@ void BodyParser::Parse(const std::shared_ptr<AstNode> parent, const std::shared_
             // TODO: Handle fields
 
             const auto methodAstNode = std::make_shared<MethodAstNode>();
+            // methodAstNode->token is set in methodParser
             parser->methodParser->Parse(body, methodAstNode);
         }
         return;
@@ -35,15 +38,34 @@ void BodyParser::Parse(const std::shared_ptr<AstNode> parent, const std::shared_
         if (nextToken.kind == TokenKind::transmit)
         {
             const Token transmitToken = parser->GetNextToken();
-            if (const Token token = parser->GetNextToken(); token.kind != TokenKind::semicolon)
-            {
-                ParseManager::GiveError(token, "Expected semicolon");
-                return;
-            }
 
             const auto transmitAstNode = std::make_shared<TransmitAstNode>();
+            transmitAstNode->token = nextToken;
+
             assert(methodAstNode->bodyAstNode != nullptr);
             methodAstNode->bodyAstNode->statementAstNodes.push_back(transmitAstNode);
+
+            if (const Token peekToken = parser->PeekNextToken(); IsLiteralValueTokenKind(peekToken.kind))
+            {
+                assert(transmitAstNode->transmitValue == nullptr);
+
+                if (const Token literalToken = parser->PeekNextToken(); literalToken.kind == TokenKind::_string || literalToken.kind == TokenKind::_char)
+                {
+                    auto stringAstNode = std::make_shared<LiteralStringValueAstNode>(literalToken);
+                    parser->literalStringValueParser->Parse(transmitAstNode, stringAstNode);
+                }
+                else
+                {
+                    auto numericAstNode = std::make_shared<LiteralNumericValueAstNode>(literalToken);
+                    parser->literalNumericValueParser->Parse(transmitAstNode, numericAstNode);
+                }
+            }
+
+            if (const Token token = parser->GetNextToken(); token.kind != TokenKind::semicolon)
+            {
+                parser->GiveError(token, TokenKind::semicolon);
+                return;
+            }
         }
     }
 
