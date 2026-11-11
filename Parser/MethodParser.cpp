@@ -100,11 +100,10 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
     if (rightCurlyToken.kind != TokenKind::rCurly)
     {
         parser->GiveError(rightCurlyToken, TokenKind::rCurly);
+        return;
     }
-    else
-    {
-        bodyAstNode->rightCurlyToken = rightCurlyToken;
-    }
+
+    bodyAstNode->rightCurlyToken = rightCurlyToken;
 }
 
 void MethodParser::ParseArgument(const std::shared_ptr<MethodAstNode>& method)
