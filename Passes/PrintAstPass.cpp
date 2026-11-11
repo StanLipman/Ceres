@@ -8,6 +8,7 @@
 #include "Models/Ast/MethodAstNode.h"
 #include "Models/Ast/TransmitAstNode.h"
 #include "Models/Ast/TypeAstNode.h"
+#include "Models/Ast/VariableAstNode.h"
 
 void PrintAstPass::visit(DocumentAstNode& node) {
     currentDepth++;
@@ -191,4 +192,10 @@ void PrintAstPass::visit(LiteralValueAstNode& node)
             break;
         }
     }
+}
+
+void PrintAstPass::visit(VariableAstNode& node)
+{
+    assert(!node.name.empty());
+    printf("%s", node.name.c_str());
 }

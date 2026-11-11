@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
 #include <vector>
-#include <format>
 
 #include "BodyParser.h"
 #include "ConstellationParser.h"
@@ -9,6 +8,7 @@
 #include "GalaxyParser.h"
 #include "LiteralValueParser.h"
 #include "MethodParser.h"
+#include "TransmitParser.h"
 #include "Models/Token.h"
 #include "Models/Ast/DocumentAstNode.h"
 
@@ -30,6 +30,7 @@ public:
     std::shared_ptr<MethodParser> methodParser;
     std::shared_ptr<LiteralStringValueParser> literalStringValueParser;
     std::shared_ptr<LiteralNumericValueParser> literalNumericValueParser;
+    std::shared_ptr<TransmitParser> transmitParser;
 
     explicit ParseManager(CompilerContext* compilerContext, const std::vector<Token>& tokens)
     {
@@ -44,6 +45,7 @@ public:
         this->methodParser = std::make_shared<MethodParser>(this);
         this->literalStringValueParser = std::make_shared<LiteralStringValueParser>(this);
         this->literalNumericValueParser = std::make_shared<LiteralNumericValueParser>(this);
+        this->transmitParser = std::make_shared<TransmitParser>(this);
     }
 
     std::shared_ptr<DocumentAstNode> GetDocumentAstNode()
