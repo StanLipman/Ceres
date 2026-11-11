@@ -32,6 +32,32 @@ add_executable(Ceres
         Parser/MethodParser.h
         Models/TokenKind.h
         Models/Ast/ArgumentAstNode.h
+        Passes/AstVisitor.h
+        Models/Ast/DocumentAstNode.cpp
+        Passes/PrintAstPass.h
+        Models/Ast/GalaxyAstNode.cpp
+        Models/Ast/TypeAstNode.cpp
+        Models/Ast/ArgumentAstNode.cpp
+        Models/Ast/BodyAstNode.cpp
+        Models/Ast/ConstellationAstNode.cpp
+        Models/Ast/MethodAstNode.cpp
+        Passes/PrintAstPass.cpp
+        Models/Types/Type.h
+        Models/Symbols/Symbol.h
+        Models/Scopes/Scope.h
+        Passes/DeclarationCollector.h
+        Passes/DeclarationResolver.h
+        Passes/SemanticAnalyzer.h
+        Models/CompilerContext.h
+        Models/Symbols/ConstellationSymbol.h
+        Models/Symbols/MethodSymbol.h
+        Models/Ast/TransmitAstNode.cpp
+        Models/Ast/TransmitAstNode.h
+        Models/Ast/LiteralValueAstNode.cpp
+        Models/Ast/LiteralValueAstNode.h
+        Parser/LiteralValueParser.cpp
+        Parser/LiteralValueParser.h
+        Passes/TypeChecker.h
         "MetaData/PE Headers/MsDosHeader.h"
         "MetaData/PE Headers/FileHeader.h"
         MetaData/CreateMetaData.h

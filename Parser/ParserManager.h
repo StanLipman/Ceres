@@ -1,12 +1,13 @@
 #pragma once
 #include <memory>
-#include <stack>
 #include <vector>
+#include <format>
 
 #include "BodyParser.h"
 #include "ConstellationParser.h"
 #include "DocumentParser.h"
 #include "GalaxyParser.h"
+#include "LiteralValueParser.h"
 #include "MethodParser.h"
 #include "Models/Token.h"
 #include "Models/Ast/DocumentAstNode.h"
@@ -19,15 +20,21 @@ private:
     std::shared_ptr<DocumentAstNode> documentAstNode;
     size_t currentTokenIndex = 0;
 
+    CompilerContext* compilerContext;
+
 public:
     std::shared_ptr<DocumentParser> documentParser;
     std::shared_ptr<GalaxyParser> galaxyParser;
     std::shared_ptr<BodyParser> bodyParser;
     std::shared_ptr<ConstellationParser> constellationParser;
     std::shared_ptr<MethodParser> methodParser;
+    std::shared_ptr<LiteralStringValueParser> literalStringValueParser;
+    std::shared_ptr<LiteralNumericValueParser> literalNumericValueParser;
 
-    explicit ParseManager(const std::vector<Token>& tokens)
+    explicit ParseManager(CompilerContext* compilerContext, const std::vector<Token>& tokens)
     {
+        this->compilerContext = compilerContext;
+
         this->tokens = tokens;
 
         this->documentParser = std::make_shared<DocumentParser>(this);
@@ -35,6 +42,13 @@ public:
         this->bodyParser = std::make_shared<BodyParser>(this);
         this->constellationParser = std::make_shared<ConstellationParser>(this);
         this->methodParser = std::make_shared<MethodParser>(this);
+        this->literalStringValueParser = std::make_shared<LiteralStringValueParser>(this);
+        this->literalNumericValueParser = std::make_shared<LiteralNumericValueParser>(this);
+    }
+
+    std::shared_ptr<DocumentAstNode> GetDocumentAstNode()
+    {
+        return this->documentAstNode;
     }
 
     Token GetNextToken()
@@ -59,14 +73,14 @@ public:
         documentParser->Parse(nullptr, this->documentAstNode);
     }
 
-    void PrintAst()
+    void GiveError(const Token& token, const TokenKind expectedTokenKind) const
     {
-        this->documentAstNode->Print(0);
+        const std::string formattedMessage = "Expected '" + GetTokenKindText(expectedTokenKind) + "' but got '" + GetTokenKindText(token.kind) + "'";
+        GiveErrorByMessage(token, formattedMessage);
     }
 
-    static void GiveError(const Token& token, const std::string& message)
+    void GiveErrorByMessage(const Token& token, const std::string& message) const
     {
-        assert(false);
-        printf("Syntax error at %lu:%lu.\n\tmessage: %s. Got %s\n", token.location.line, token.location.column, message.c_str(), GetTokenKindText(token.kind).c_str());
+        compilerContext->compilationErrors.emplace_back(message, token.location);
     }
 };

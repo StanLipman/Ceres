@@ -13,48 +13,62 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
         return;
     }
 
-    body->AddStatement(method);
+    body->statementAstNodes.push_back(method);
 
     const Token accessModifierToken = parser->GetNextToken();
     if (!IsAccessModifier(accessModifierToken.kind))
     {
-        ParseManager::GiveError(accessModifierToken, "Expected access modifier");
+        parser->GiveErrorByMessage(accessModifierToken, "Expected access modifier");
         return;
     }
 
-    method->SetAccessModifier(accessModifierToken.kind);
+    assert(method->accessModifier == TokenKind::none);
+    method->accessModifier = accessModifierToken.kind;
 
-    if (parser->PeekNextToken().kind == TokenKind::eternal)
+    const Token eternalToken = parser->GetNextToken();
+    if (eternalToken.kind != TokenKind::eternal)
     {
-        const Token eternalToken = parser->GetNextToken();
-        assert(eternalToken.kind == TokenKind::eternal);
-        method->SetIsEternal();
+        parser->GiveErrorByMessage(eternalToken, "All methods should be eternal (at least for now)");
+        return;
     }
+    // TODO: Re-enable this when we make eternal optional again on methods https://github.com/StanLipman/Ceres/issues/12
+    // if (parser->PeekNextToken().kind == TokenKind::eternal)
+    // {
+    //     const Token eternalToken = parser->GetNextToken();
+    //     assert(eternalToken.kind == TokenKind::eternal);
+    //     method->SetIsEternal();
+    // }
 
     const Token returnTypeToken = parser->GetNextToken();
     if (returnTypeToken.kind != TokenKind::identifier && returnTypeToken.kind != TokenKind::vacuum)
     {
-        ParseManager::GiveError(returnTypeToken, "Expected return type");
+        parser->GiveError(returnTypeToken, TokenKind::identifier);
         return;
     }
 
     const auto primitiveReturnType = std::make_shared<TypeAstNode>();
-    primitiveReturnType->SetName(returnTypeToken.text);
-    method->SetReturnType(primitiveReturnType);
+    primitiveReturnType->token = returnTypeToken;
+    assert(primitiveReturnType->name.empty());
+    primitiveReturnType->name = returnTypeToken.text;
+
+    assert(method->returnTypeAstNode == nullptr);
+    method->returnTypeAstNode = primitiveReturnType;
 
     const Token identifierToken = parser->GetNextToken();
     if (identifierToken.kind != TokenKind::identifier)
     {
-        ParseManager::GiveError(identifierToken, "Expected identifier");
+        parser->GiveError(identifierToken, TokenKind::identifier);
         return;
     }
 
-    method->SetName(identifierToken.text);
+    assert(method->name.empty());
+    method->token = identifierToken;
+    method->name = identifierToken.text;
 
     const Token leftParenToken = parser->GetNextToken();
     if (leftParenToken.kind != TokenKind::lParen)
     {
-        ParseManager::GiveError(leftParenToken, "Expected left parenthesis");
+        parser->GiveError(leftParenToken, TokenKind::lParen);
         return;
     }
 
@@ -64,27 +78,32 @@ void MethodParser::Parse(const std::shared_ptr<AstNode> parent, const std::share
     const Token rightParenToken = parser->GetNextToken();
     if (rightParenToken.kind != TokenKind::rParen)
     {
-        ParseManager::GiveError(rightParenToken, "Expected right parenthesis");
+        parser->GiveError(rightParenToken, TokenKind::rParen);
         return;
     }
 
     const Token leftCurlyToken = parser->GetNextToken();
     if (leftCurlyToken.kind != TokenKind::lCurly)
     {
-        ParseManager::GiveError(leftCurlyToken, "Expected left curly");
+        parser->GiveError(leftCurlyToken, TokenKind::lCurly);
         return;
     }
 
     const auto bodyAstNode = std::make_shared<BodyAstNode>();
-    method->SetBody(bodyAstNode);
+    bodyAstNode->leftCurlyToken = leftCurlyToken;
+
+    assert(method->bodyAstNode == nullptr);
+    method->bodyAstNode = bodyAstNode;
     parser->bodyParser->Parse(method, bodyAstNode);
 
     const Token rightCurlyToken = parser->GetNextToken();
     if (rightCurlyToken.kind != TokenKind::rCurly)
     {
-        ParseManager::GiveError(rightCurlyToken, "Expected right curly");
+        parser->GiveError(rightCurlyToken, TokenKind::rCurly);
         return;
     }
+
+    bodyAstNode->rightCurlyToken = rightCurlyToken;
 }
 
 void MethodParser::ParseArgument(const std::shared_ptr<MethodAstNode>& method)
@@ -93,25 +112,30 @@ void MethodParser::ParseArgument(const std::shared_ptr<MethodAstNode>& method)
         parser->GetNextToken();
 
     const std::shared_ptr<ArgumentAstNode> argumentAstNode = std::make_shared<ArgumentAstNode>();
-    method->AddArgument(argumentAstNode);
+    method->argumentAstNodes.push_back(argumentAstNode);
 
     const Token argumentTypeToken = parser->GetNextToken();
     if (argumentTypeToken.kind != TokenKind::identifier)
     {
-        ParseManager::GiveError(argumentTypeToken, "Expected type identifier");
+        parser->GiveError(argumentTypeToken, TokenKind::identifier);
         return;
     }
 
     const std::shared_ptr<TypeAstNode> typeAstNode = std::make_shared<TypeAstNode>();
-    typeAstNode->SetName(argumentTypeToken.text);
-    argumentAstNode->SetType(typeAstNode);
+    typeAstNode->token = argumentTypeToken;
+    assert(typeAstNode->name.empty());
+    typeAstNode->name = argumentTypeToken.text;
+
+    assert(argumentAstNode->typeAstNode == nullptr);
+    argumentAstNode->typeAstNode = typeAstNode;
 
     const Token argumentNameToken = parser->GetNextToken();
     if (argumentNameToken.kind != TokenKind::identifier)
     {
-        ParseManager::GiveError(argumentNameToken, "Expected name identifier");
+        parser->GiveError(argumentNameToken, TokenKind::identifier);
         return;
     }
 
-    argumentAstNode->SetName(argumentNameToken.text);
+    assert(argumentAstNode->name.empty());
+    argumentAstNode->name = argumentNameToken.text;
 }

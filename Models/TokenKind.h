@@ -40,11 +40,27 @@
     X(lCurly, "{") \
     X(rCurly, "}") \
     X(semicolon, ";") \
-    X(comma, ",")
+    X(comma, ",") \
+    /* Control Flow and Logic */ \
+    X(transmit, "transmit")
 
 #define SPECIAL_TOKENS(X) \
     X(identifier, "identifier") \
     X(eof, "eof")
+
+#define LITERAL_VALUE_TOKENS(X) \
+    X(_bool, "bool") \
+    X(_byte, "byte") \
+    X(_char, "char") \
+    X(_double, "double") \
+    X(_float, "float") \
+    X(_short, "short") \
+    X(_ushort, "ushort") \
+    X(_int, "int") \
+    X(_uint, "uint") \
+    X(_long, "long") \
+    X(_ulong, "ulong") \
+    X(_string, "string")
 
 enum class TokenKind {
     none = 0, // To check for accidental assignment
@@ -52,6 +68,7 @@ enum class TokenKind {
     ACCESS_MODIFIER_TOKENS(ENUM_ENTRY)
     TOKENS(ENUM_ENTRY)
     SPECIAL_TOKENS(ENUM_ENTRY)
+    LITERAL_VALUE_TOKENS(ENUM_ENTRY)
 #undef ENUM_ENTRY
 };
 
@@ -73,6 +90,13 @@ static std::unordered_map<TokenKind, std::string> tokenDisplayName {
     ACCESS_MODIFIER_TOKENS(DICT_ENTRY)
     TOKENS(DICT_ENTRY)
     SPECIAL_TOKENS(DICT_ENTRY)
+    LITERAL_VALUE_TOKENS(DICT_ENTRY)
+#undef DICT_ENTRY
+};
+
+static std::unordered_set literalValueTokens {
+#define DICT_ENTRY(name, value) TokenKind::name,
+    LITERAL_VALUE_TOKENS(DICT_ENTRY)
 #undef DICT_ENTRY
 };
 
@@ -85,4 +109,9 @@ static std::string GetTokenKindText(const TokenKind kind)
 {
     assert(tokenDisplayName.contains(kind));
     return tokenDisplayName[kind];
+}
+
+static bool IsLiteralValueTokenKind(const TokenKind kind)
+{
+    return literalValueTokens.contains(kind);
 }

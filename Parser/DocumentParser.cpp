@@ -12,12 +12,13 @@ void DocumentParser::Parse(const std::shared_ptr<AstNode> parent, const std::sha
 
         if (nextToken.kind != TokenKind::galaxy)
         {
-            ParseManager::GiveError(nextToken, "Expected galaxy");
+            parser->GiveError(nextToken, TokenKind::galaxy);
             return;
         }
 
         const auto galaxyAstNode = std::make_shared<GalaxyAstNode>();
-        document->AddGalaxyAstNode(galaxyAstNode);
+        galaxyAstNode->token = nextToken;
+        document->galaxyAstNodes.push_back(galaxyAstNode);
 
         parser->galaxyParser->Parse(nullptr, galaxyAstNode);
     }

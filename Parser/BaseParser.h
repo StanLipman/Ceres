@@ -6,6 +6,7 @@
 class ParseManager;
 
 template <typename T>
+    requires std::is_base_of_v<AstNode, std::remove_cvref_t<T>>
 class BaseParser
 {
 protected:
