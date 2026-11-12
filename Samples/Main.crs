@@ -1,13 +1,14 @@
 galaxy Samples {
     universal eternal constellation Program {
+        universal eternal vacuum Main()
+        {
+            Str(1, "asdf");
+            transmit;
+        }
+
         universal eternal string Str()
         {
             transmit "asdf";
-        }
-
-        universal eternal vacuum Main()
-        {
-            transmit;
         }
 
         universal eternal bool Test(int input)

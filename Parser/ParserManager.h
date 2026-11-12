@@ -7,6 +7,7 @@
 #include "DocumentParser.h"
 #include "GalaxyParser.h"
 #include "LiteralValueParser.h"
+#include "MethodCallParser.h"
 #include "MethodParser.h"
 #include "TransmitParser.h"
 #include "Models/Token.h"
@@ -23,14 +24,14 @@ private:
     CompilerContext* compilerContext;
 
 public:
-    std::shared_ptr<DocumentParser> documentParser;
-    std::shared_ptr<GalaxyParser> galaxyParser;
-    std::shared_ptr<BodyParser> bodyParser;
-    std::shared_ptr<ConstellationParser> constellationParser;
-    std::shared_ptr<MethodParser> methodParser;
-    std::shared_ptr<LiteralStringValueParser> literalStringValueParser;
-    std::shared_ptr<LiteralNumericValueParser> literalNumericValueParser;
-    std::shared_ptr<TransmitParser> transmitParser;
+    std::unique_ptr<DocumentParser> documentParser;
+    std::unique_ptr<GalaxyParser> galaxyParser;
+    std::unique_ptr<BodyParser> bodyParser;
+    std::unique_ptr<ConstellationParser> constellationParser;
+    std::unique_ptr<MethodParser> methodParser;
+    std::unique_ptr<LiteralValueParser> literalValueParser;
+    std::unique_ptr<TransmitParser> transmitParser;
+    std::unique_ptr<MethodCallParser> methodCallParser;
 
     explicit ParseManager(CompilerContext* compilerContext, const std::vector<Token>& tokens)
     {
@@ -38,14 +39,14 @@ public:
 
         this->tokens = tokens;
 
-        this->documentParser = std::make_shared<DocumentParser>(this);
-        this->galaxyParser = std::make_shared<GalaxyParser>(this);
-        this->bodyParser = std::make_shared<BodyParser>(this);
-        this->constellationParser = std::make_shared<ConstellationParser>(this);
-        this->methodParser = std::make_shared<MethodParser>(this);
-        this->literalStringValueParser = std::make_shared<LiteralStringValueParser>(this);
-        this->literalNumericValueParser = std::make_shared<LiteralNumericValueParser>(this);
-        this->transmitParser = std::make_shared<TransmitParser>(this);
+        this->documentParser = std::make_unique<DocumentParser>(this);
+        this->galaxyParser = std::make_unique<GalaxyParser>(this);
+        this->bodyParser = std::make_unique<BodyParser>(this);
+        this->constellationParser = std::make_unique<ConstellationParser>(this);
+        this->methodParser = std::make_unique<MethodParser>(this);
+        this->literalValueParser = std::make_unique<LiteralValueParser>(this);
+        this->transmitParser = std::make_unique<TransmitParser>(this);
+        this->methodCallParser = std::make_unique<MethodCallParser>(this);
     }
 
     std::shared_ptr<DocumentAstNode> GetDocumentAstNode()
@@ -71,8 +72,8 @@ public:
 
     void BuildAst()
     {
-        this->documentAstNode = std::make_shared<DocumentAstNode>();
-        documentParser->Parse(nullptr, this->documentAstNode);
+        this->documentAstNode = documentParser->Parse();
+        assert(this->documentAstNode != nullptr);
     }
 
     void GiveError(const Token& token, const TokenKind expectedTokenKind) const
@@ -84,5 +85,55 @@ public:
     void GiveErrorByMessage(const Token& token, const std::string& message) const
     {
         compilerContext->compilationErrors.emplace_back(message, token.location);
+    }
+
+    bool TryConsumeOnMatchOrSkip(const TokenKind expectedTokenKind)
+    {
+        const Token nextToken = PeekNextToken();
+        if (nextToken.kind != expectedTokenKind)
+            return false;
+
+        (void) GetNextToken();
+        return true;
+    }
+
+    bool TryConsumeOrError(const TokenKind expectedTokenKind)
+    {
+        const Token nextToken = GetNextToken();
+        if (nextToken.kind != expectedTokenKind)
+        {
+            GiveError(nextToken, expectedTokenKind);
+            return false;
+        }
+
+        return true;
+    }
+
+    bool TryGetNextTokenOrError(const TokenKind expectedTokenKind, Token& outToken)
+    {
+        const Token nextToken = GetNextToken();
+        if (nextToken.kind != expectedTokenKind)
+        {
+            outToken = EmptyToken;
+            GiveError(nextToken, expectedTokenKind);
+            return false;
+        }
+
+        outToken = nextToken;
+        return true;
+    }
+
+    bool TryGetNextTokenOrError(const TokenKind expectedTokenKind, const std::string& errorMessage, Token& outToken)
+    {
+        const Token nextToken = GetNextToken();
+        if (nextToken.kind != expectedTokenKind)
+        {
+            outToken = EmptyToken;
+            GiveErrorByMessage(nextToken, errorMessage);
+            return false;
+        }
+
+        outToken = nextToken;
+        return true;
     }
 };

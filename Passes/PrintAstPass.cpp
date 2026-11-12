@@ -6,6 +6,7 @@
 #include "Models/Ast/ConstellationAstNode.h"
 #include "Models/Ast/LiteralValueAstNode.h"
 #include "Models/Ast/MethodAstNode.h"
+#include "Models/Ast/MethodCallAstNode.h"
 #include "Models/Ast/TransmitAstNode.h"
 #include "Models/Ast/TypeAstNode.h"
 #include "Models/Ast/VariableAstNode.h"
@@ -127,7 +128,10 @@ void PrintAstPass::visit(LiteralValueAstNode& node)
     if (node.tokenKind == TokenKind::_string || node.tokenKind == TokenKind::_char)
     {
         const auto stringValue = reinterpret_cast<LiteralStringValueAstNode&>(node);
-        printf("%s", stringValue.value.c_str());
+        if (stringValue.tokenKind == TokenKind::_char)
+            printf("\'%s\'", stringValue.value.c_str());
+        else
+            printf("\"%s\"", stringValue.value.c_str());
         return;
     }
 
@@ -198,4 +202,24 @@ void PrintAstPass::visit(VariableAstNode& node)
 {
     assert(!node.name.empty());
     printf("%s", node.name.c_str());
+}
+
+void PrintAstPass::visit(MethodCallAstNode& node)
+{
+    for (size_t i = 0; i < currentDepth; i++)
+        printf("-");
+
+    assert(!node.name.empty());
+    printf("%s(", node.name.c_str());
+
+    for (size_t i = 0; i < node.arguments.size(); i++)
+    {
+        const auto& argument = node.arguments[i];
+        argument->accept(*this);
+
+        if (i < node.arguments.size() - 1)
+            printf(", ");
+    }
+
+    printf(")\n");
 }

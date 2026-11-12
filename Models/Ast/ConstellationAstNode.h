@@ -14,6 +14,7 @@ public:
     std::shared_ptr<BodyAstNode> bodyAstNode;
     std::shared_ptr<Scope> scope;
     Token token = EmptyToken;
+    bool isEternal;
 
     void accept(AstVisitor& visitor) override;
 };

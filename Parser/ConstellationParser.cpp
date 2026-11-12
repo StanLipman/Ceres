@@ -2,75 +2,35 @@
 #include "ConstellationParser.h"
 #include "ParserManager.h"
 
-void ConstellationParser::Parse(const std::shared_ptr<AstNode> parent, const std::shared_ptr<ConstellationAstNode>& constellation)
+std::shared_ptr<ConstellationAstNode> ConstellationParser::Parse() const
 {
-    assert(parent != nullptr);
-    const std::shared_ptr<BodyAstNode> body = std::dynamic_pointer_cast<BodyAstNode>(parent);
-    if (body == nullptr)
-    {
-        assert(false); // How did we get anything different than a body?
-        return;
-    }
-
     const Token accessModifierToken = parser->GetNextToken();
     if (!IsAccessModifier(accessModifierToken.kind))
     {
         parser->GiveErrorByMessage(accessModifierToken, "Expected access modifier");
-        return;
+        return nullptr;
     }
-
-    // TODO: Add handling for structs
 
     // TODO: Fix this: https://github.com/StanLipman/Ceres/issues/12
-    const Token eternalToken = parser->GetNextToken();
-    if (eternalToken.kind != TokenKind::eternal)
-    {
-        parser->GiveErrorByMessage(eternalToken, "All constellations should be eternal (at least for now)");
-        return;
-    }
+    if (Token eternalToken; !parser->TryGetNextTokenOrError(TokenKind::eternal, "All constellations should be eternal (at least for now)", eternalToken))
+        return nullptr;
 
-    const Token constellationToken = parser->GetNextToken();
-    if (constellationToken.kind != TokenKind::constellation)
-    {
-        parser->GiveError(constellationToken, TokenKind::constellation);
-        return;
-    }
-    assert(constellation->token.kind == TokenKind::none);
-    constellation->token = constellationToken;
+    Token constellationToken;
+    if (!parser->TryGetNextTokenOrError(TokenKind::constellation, constellationToken))
+        return nullptr;
 
-    body->statementAstNodes.push_back(constellation);
-    assert(constellation->accessModifier == TokenKind::none);
-    constellation->accessModifier = accessModifierToken.kind;
+    Token identifierToken;
+    if (!parser->TryGetNextTokenOrError(TokenKind::identifier, identifierToken))
+        return nullptr;
 
-    const Token constellationIdentifierToken = parser->GetNextToken();
-    if (constellationIdentifierToken.kind != TokenKind::identifier)
-    {
-        parser->GiveError(constellationIdentifierToken, TokenKind::identifier);
-        return;
-    }
+    auto constellationAstNode = std::make_shared<ConstellationAstNode>();
+    constellationAstNode->token = constellationToken;
+    constellationAstNode->name = identifierToken.text;
+    constellationAstNode->accessModifier = accessModifierToken.kind;
+    constellationAstNode->isEternal = true; // TODO: Fix this: https://github.com/StanLipman/Ceres/issues/12
 
-    assert(constellation->name.empty());
-    constellation->name = constellationIdentifierToken.text;
+    const auto bodyAstNode = parser->bodyParser->ParseConstellationBody();
+    constellationAstNode->bodyAstNode = bodyAstNode;
 
-    const Token leftCurlyToken = parser->GetNextToken();
-    if (leftCurlyToken.kind != TokenKind::lCurly)
-    {
-        parser->GiveError(leftCurlyToken, TokenKind::lCurly);
-        return;
-    }
-
-    const auto bodyAstNode = std::make_shared<BodyAstNode>();
-    assert(constellation->bodyAstNode == nullptr);
-    constellation->bodyAstNode = bodyAstNode;
-    bodyAstNode->leftCurlyToken = leftCurlyToken;
-
-    parser->bodyParser->Parse(constellation, bodyAstNode);
-
-    const Token rightCurlyToken = parser->GetNextToken();
-    if (rightCurlyToken.kind != TokenKind::rCurly)
-    {
-        parser->GiveError(rightCurlyToken, TokenKind::rCurly);
-        return;
-    }
-    bodyAstNode->rightCurlyToken = rightCurlyToken;
+    return constellationAstNode;
 }

@@ -5,47 +5,104 @@
 #include "Models/Ast/ConstellationAstNode.h"
 #include "Models/Ast/LiteralValueAstNode.h"
 #include "Models/Ast/MethodAstNode.h"
+#include "Models/Ast/MethodCallAstNode.h"
 #include "Models/Ast/TransmitAstNode.h"
 
 class GalaxyAstNode;
 
-void BodyParser::Parse(const std::shared_ptr<AstNode> parent, const std::shared_ptr<BodyAstNode>& body)
+std::shared_ptr<BodyAstNode> BodyParser::ParseGalaxyBody() const
 {
-    if (const auto galaxyAstNode = std::dynamic_pointer_cast<GalaxyAstNode>(parent))
+    Token lCurlyToken;
+    if (!parser->TryGetNextTokenOrError(TokenKind::lCurly, lCurlyToken))
+        return nullptr;
+
+    auto bodyAstNode = std::make_shared<BodyAstNode>();
+    bodyAstNode->leftCurlyToken = lCurlyToken;
+
+    Token peekedToken = parser->PeekNextToken();
+
+    while (peekedToken.kind != TokenKind::rCurly)
     {
-        const std::shared_ptr<ConstellationAstNode> constellationAstNode = std::make_shared<ConstellationAstNode>();
-        // constellationAstNode->token is set in the constellationParser
-        parser->constellationParser->Parse(body, constellationAstNode);
-        return;
+        const auto constellation = parser->constellationParser->Parse();
+        if (constellation != nullptr)
+            bodyAstNode->statementAstNodes.push_back(constellation);
+
+        peekedToken = parser->PeekNextToken();
     }
 
-    if (const auto constellationAstNode = std::dynamic_pointer_cast<ConstellationAstNode>(parent))
+    Token rCurlyToken;
+    if (!parser->TryGetNextTokenOrError(TokenKind::rCurly, rCurlyToken))
+        return nullptr;
+
+    bodyAstNode->rightCurlyToken = rCurlyToken;
+
+    return bodyAstNode;
+}
+
+std::shared_ptr<BodyAstNode> BodyParser::ParseConstellationBody() const
+{
+    Token lCurlyToken;
+    if (!parser->TryGetNextTokenOrError(TokenKind::lCurly, lCurlyToken))
+        return nullptr;
+
+    auto bodyAstNode = std::make_shared<BodyAstNode>();
+    bodyAstNode->leftCurlyToken = lCurlyToken;
+
+    Token peekedToken = parser->PeekNextToken();
+
+    while (peekedToken.kind != TokenKind::rCurly)
     {
-        while (parser->PeekNextToken().kind != TokenKind::rCurly) // This works, because any other rCurly should already be consumed
+        // TODO: Make handling between methods, and fields
+        const auto methodAstNode = parser->methodParser->Parse();
+        if (methodAstNode != nullptr)
+            bodyAstNode->statementAstNodes.push_back(methodAstNode);
+
+        peekedToken = parser->PeekNextToken();
+    }
+
+    Token rCurlyToken;
+    if (!parser->TryGetNextTokenOrError(TokenKind::rCurly, rCurlyToken))
+        return nullptr;
+
+    bodyAstNode->rightCurlyToken = rCurlyToken;
+
+    return bodyAstNode;
+}
+
+std::shared_ptr<BodyAstNode> BodyParser::ParseMethodBody() const
+{
+    Token lCurlyToken;
+    if (!parser->TryGetNextTokenOrError(TokenKind::lCurly, lCurlyToken))
+        return nullptr;
+
+    auto bodyAstNode = std::make_shared<BodyAstNode>();
+    bodyAstNode->leftCurlyToken = lCurlyToken;
+
+    Token peekedToken = parser->PeekNextToken();
+
+    while (peekedToken.kind != TokenKind::rCurly)
+    {
+        if (peekedToken.kind == TokenKind::transmit)
         {
-            // TODO: Handle fields
-
-            const auto methodAstNode = std::make_shared<MethodAstNode>();
-            // methodAstNode->token is set in methodParser
-            parser->methodParser->Parse(body, methodAstNode);
+            const auto transmitAstNode = parser->transmitParser->Parse();
+            if (transmitAstNode != nullptr)
+                bodyAstNode->statementAstNodes.push_back(transmitAstNode);
         }
-        return;
-    }
-
-    if (const auto methodAstNode = std::dynamic_pointer_cast<MethodAstNode>(parent); methodAstNode != nullptr)
-    {
-        const Token nextToken = parser->PeekNextToken();
-        if (nextToken.kind == TokenKind::transmit)
+        else if (peekedToken.kind == TokenKind::identifier)
         {
-            const Token transmitToken = parser->GetNextToken();
-
-            const auto transmitAstNode = std::make_shared<TransmitAstNode>();
-            transmitAstNode->token = transmitToken;
-
-            parser->transmitParser->Parse(methodAstNode, transmitAstNode);
-            return;
+            const auto methodCallAstNode = parser->methodCallParser->Parse();
+            if (methodCallAstNode != nullptr)
+                bodyAstNode->statementAstNodes.push_back(methodCallAstNode);
         }
+
+        peekedToken = parser->PeekNextToken();
     }
 
-    // assert(false); // TODO: Make handling
+    Token rCurlyToken;
+    if (!parser->TryGetNextTokenOrError(TokenKind::rCurly, rCurlyToken))
+        return nullptr;
+
+    bodyAstNode->rightCurlyToken = rCurlyToken;
+
+    return bodyAstNode;
 }

@@ -1,19 +1,19 @@
 #pragma once
-#include "BaseParser.h"
+#include <memory>
+
 #include "Models/Ast/LiteralValueAstNode.h"
 
-class LiteralStringValueParser: public BaseParser<LiteralStringValueAstNode>
+class ParseManager;
+
+class LiteralValueParser
 {
+private:
+    ParseManager* parser;
+    [[nodiscard]] std::shared_ptr<LiteralValueAstNode> ParseStringLiteral(const Token& literalStringToken) const;
+    [[nodiscard]] static std::shared_ptr<LiteralValueAstNode> ParseNumericLiteral(const Token& literalToken);
+
 public:
-    explicit LiteralStringValueParser(ParseManager* parser) : BaseParser(parser) { }
+    explicit LiteralValueParser(ParseManager* parser) : parser(parser) { }
 
-    void Parse(const std::shared_ptr<AstNode> parent, const std::shared_ptr<LiteralStringValueAstNode>& stringValueAstNode) override;
-};
-
-class LiteralNumericValueParser: public BaseParser<LiteralNumericValueAstNode>
-{
-public:
-    explicit LiteralNumericValueParser(ParseManager* parser) : BaseParser(parser) { }
-
-    void Parse(const std::shared_ptr<AstNode> parent, const std::shared_ptr<LiteralNumericValueAstNode>& numericValueAstNode) override;
+    [[nodiscard]] std::shared_ptr<LiteralValueAstNode> Parse() const;
 };

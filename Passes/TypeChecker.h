@@ -8,6 +8,7 @@
 #include "Models/Ast/ConstellationAstNode.h"
 #include "Models/Ast/LiteralValueAstNode.h"
 #include "Models/Ast/MethodAstNode.h"
+#include "Models/Ast/MethodCallAstNode.h"
 #include "Models/Ast/TransmitAstNode.h"
 #include "Models/Ast/TypeAstNode.h"
 #include "Models/Ast/VariableAstNode.h"
@@ -64,44 +65,88 @@ public:
 
         for (const auto& statementAstNode : node.bodyAstNode->statementAstNodes)
         {
-            // Right now a body can only contain transmit statements
-            const auto* transmitStatement = dynamic_cast<TransmitAstNode*>(statementAstNode.get());
-            assert(transmitStatement != nullptr);
-            const auto& transmitValue = transmitStatement->transmitValue;
-
-            const std::shared_ptr<Type>& transmitValueType = GetType(node.scope, transmitValue);
-            if (transmitValueType != returnType)
+            if (const auto* transmitStatement = dynamic_cast<TransmitAstNode*>(statementAstNode.get()); transmitStatement != nullptr)
             {
-                std::string formattedMessage;
-                SourceLocation location;
+                const auto& transmitValue = transmitStatement->transmitValue;
 
-                if (transmitValue == nullptr)
+                const std::shared_ptr<Type>& transmitValueType = GetType(node.scope, transmitValue);
+                if (transmitValueType != returnType)
                 {
-                    formattedMessage = "Method '" + node.name + "' expected transmit type of '" + node.returnTypeAstNode->name + "', but got empty transmit.";
-                    location = transmitStatement->token.location;
-                }
-                else if (const auto& literalValue = std::dynamic_pointer_cast<LiteralValueAstNode>(transmitValue); literalValue != nullptr)
-                {
-                    const TokenKind transmitValueTokenKind = literalValue->tokenKind;
-                    formattedMessage = "Method '" + node.name + "' expected transmit type of '" + node.returnTypeAstNode->name + "', but '" + GetTokenKindText(transmitValueTokenKind) + "' got transmitted.";
-                    location = literalValue->token.location;
-                }
-                else if (const auto& variable = std::dynamic_pointer_cast<VariableAstNode>(transmitValue); variable != nullptr)
-                {
-                    if (transmitValueType == nullptr)
+                    std::string formattedMessage;
+                    SourceLocation location;
+
+                    if (transmitValue == nullptr)
                     {
-                        formattedMessage = "Tried to transmit undefined value of name '" + variable->name + "'";
+                        formattedMessage = "Method '" + node.name + "' expected transmit type of '" + node.returnTypeAstNode->name + "', but got empty transmit.";
                         location = transmitStatement->token.location;
                     }
-                    else
+                    else if (const auto& literalValue = std::dynamic_pointer_cast<LiteralValueAstNode>(transmitValue); literalValue != nullptr)
                     {
-                        formattedMessage = "Method '" + node.name + "' expected transmit type of '" + node.returnTypeAstNode->name + "', but '" + transmitValueType->GetTypeKindText() + "' got transmitted.";
-                        location = variable->token.location;
+                        const TokenKind transmitValueTokenKind = literalValue->tokenKind;
+                        formattedMessage = "Method '" + node.name + "' expected transmit type of '" + node.returnTypeAstNode->name + "', but '" + GetTokenKindText(transmitValueTokenKind) + "' got transmitted.";
+                        location = literalValue->token.location;
                     }
+                    else if (const auto& variable = std::dynamic_pointer_cast<VariableAstNode>(transmitValue); variable != nullptr)
+                    {
+                        if (transmitValueType == nullptr)
+                        {
+                            formattedMessage = "Tried to transmit undefined value of name '" + variable->name + "'";
+                            location = transmitStatement->token.location;
+                        }
+                        else
+                        {
+                            formattedMessage = "Method '" + node.name + "' expected transmit type of '" + node.returnTypeAstNode->name + "', but '" + transmitValueType->GetTypeKindText() + "' got transmitted.";
+                            location = variable->token.location;
+                        }
+                    }
+
+                    compilerContext->compilationErrors.emplace_back(formattedMessage, location);
+                    return;
+                }
+            }
+            else if (const auto* methodCallStatement = dynamic_cast<MethodCallAstNode*>(statementAstNode.get()); methodCallStatement != nullptr)
+            {
+                const auto& symbol = node.scope->Lookup(methodCallStatement->name);
+                const auto callingMethodSymbol = std::dynamic_pointer_cast<MethodSymbol>(symbol);
+                assert(callingMethodSymbol != nullptr);
+                if (callingMethodSymbol == nullptr)
+                {
+                    const std::string formattedMessage = "Method '" + methodCallStatement->name + "' does not exist.";
+                    const SourceLocation location = methodCallStatement->token.location;
+                    compilerContext->compilationErrors.emplace_back(formattedMessage, location);
+                    return;
                 }
 
-                compilerContext->compilationErrors.emplace_back(formattedMessage, location);
-                return;
+                if (callingMethodSymbol->type->parameterTypes.size() != methodCallStatement->arguments.size())
+                {
+                    const std::string formattedMessage = "Method '" + methodCallStatement->name + "' got " + std::to_string(methodCallStatement->arguments.size()) + " arguments, but expected " + std::to_string(callingMethodSymbol->type->parameterTypes.size()) + " arguments.";
+                    const SourceLocation location = methodCallStatement->token.location;
+                    compilerContext->compilationErrors.emplace_back(formattedMessage, location);
+                    return;
+                }
+
+                for (size_t i = 0; i < methodCallStatement->arguments.size(); i++)
+                {
+                    if (i > callingMethodSymbol->type->parameterTypes.size())
+                        break; // More arguments were provided then expected
+
+                    const auto& providedArgument = methodCallStatement->arguments[i];
+                    assert(providedArgument != nullptr);
+                    const auto& providedArgumentType = GetType(node.scope, providedArgument);
+                    assert(providedArgumentType != nullptr);
+                    const auto& expectedArgumentType = callingMethodSymbol->type->parameterTypes[i];
+                    assert(expectedArgumentType != nullptr);
+
+                    if (providedArgumentType != expectedArgumentType)
+                    {
+                        assert(providedArgumentType->kind != Type::TypeKind::none);
+                        assert(expectedArgumentType->kind != Type::TypeKind::none);
+
+                        const std::string formattedMessage = "Method '" + methodCallStatement->name + "' expected argument with type of" + expectedArgumentType->GetTypeKindText() + " but got " + providedArgumentType->GetTypeKindText() + " arguments.";
+                        const SourceLocation location = methodCallStatement->token.location;
+                        compilerContext->compilationErrors.emplace_back(formattedMessage, location);
+                    }
+                }
             }
         }
     }
@@ -124,6 +169,12 @@ public:
     void visit(VariableAstNode& node) override
     {
         // Skip? Handled in MethodAstNode
+    }
+
+    void visit(MethodCallAstNode& node) override
+    {
+        // TODO: Do we need to handle this?
+        // Maybe we here do the validation if the method exists, and if the passed arguments are valid
     }
 
 private:

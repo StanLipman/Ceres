@@ -1,11 +1,15 @@
 #pragma once
-#include "BaseParser.h"
 #include "Models/Ast/TransmitAstNode.h"
 
-class TransmitParser: public BaseParser<TransmitAstNode>
-{
-public:
-    explicit TransmitParser(ParseManager* parser) : BaseParser(parser) { }
+class ParseManager;
 
-    void Parse(const std::shared_ptr<AstNode> parent, const std::shared_ptr<TransmitAstNode>& transmitAstNode) override;
+class TransmitParser
+{
+private:
+    ParseManager* parser;
+
+public:
+    explicit TransmitParser(ParseManager* parser) : parser(parser) { }
+
+    [[nodiscard]] std::shared_ptr<TransmitAstNode> Parse() const;
 };

@@ -1,12 +1,14 @@
 #pragma once
-#include "BaseParser.h"
 #include "Models/Ast/ConstellationAstNode.h"
 
-class ConstellationParser: public BaseParser<ConstellationAstNode>
-{
-public:
-    explicit ConstellationParser(ParseManager* parser)
-        : BaseParser(parser) { }
+class ParseManager;
 
-    void Parse(const std::shared_ptr<AstNode> parent, const std::shared_ptr<ConstellationAstNode>& astNode) override;
+class ConstellationParser
+{
+private:
+    ParseManager* parser;
+public:
+    explicit ConstellationParser(ParseManager* parser) : parser(parser) { }
+
+    [[nodiscard]] std::shared_ptr<ConstellationAstNode> Parse() const;
 };

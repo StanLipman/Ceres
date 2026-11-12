@@ -138,4 +138,9 @@ public:
     {
         // skip
     }
+
+    void visit(MethodCallAstNode& node) override
+    {
+        // Skip?
+    }
 };
