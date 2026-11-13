@@ -1,11 +1,12 @@
 #include <iostream>
-#include "FileIO/WriteDllFile.h"
 #include <cstring>
 
+#include "FileIO/WriteDllFile.h"
 #include "Lexer/Lexer.h"
 #include "Parser/ParserManager.h"
 #include "Passes/PrintAstPass.h"
 #include "Passes/SemanticAnalyzer.h"
+#include "MetaData/CreateMetaData.h"
 
 int main(const int argc, char* argv[])
 {
@@ -47,8 +48,10 @@ int main(const int argc, char* argv[])
 
     if (compilerContext.writeDll)
     {
-        // Test data
-        const std::vector<uint8_t> bytes = { 0x4D, 0x5A, 0x90, 0x00 };
+        std::vector<uint8_t> bytes;
+
+        if (!CreateMetaDataFromParseManager(parseManager, bytes))
+            return 1;
 
         if (!WriteAllBytesToNewDll(argv[1], bytes))
             return 1;

@@ -62,4 +62,8 @@ add_executable(Ceres
         Parser/TransmitParser.h
         Models/Ast/VariableAstNode.cpp
         Models/Ast/VariableAstNode.h
+        MetaData/PeHeaders/MsDosHeader.h
+        MetaData/PeHeaders/FileHeader.h
+        MetaData/PeHeaders/OptionalHeader.h
+        MetaData/CreateMetaData.h
 )
