@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Parser/ParserManager.h"
-#include "PE Headers/MsDosHeader.h"
-#include "PE Headers/FileHeader.h"
-#include "PE Headers/OptionalHeader.h"
+#include "PeHeaders/MsDosHeader.h"
+#include "PeHeaders/FileHeader.h"
+#include "PeHeaders/OptionalHeader.h"
 
 inline bool CreateMetaDataFromParseManager(ParseManager& parseManager, std::vector<uint8_t>& bytes)
 {
