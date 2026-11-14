@@ -71,7 +71,6 @@ add_executable(Ceres
         Passes/TypeChecks/TransmitStatementTypeChecker.cpp
         Passes/TypeChecks/MethodCallStatementTypeChecker.cpp
         Passes/TypeChecks/MethodCallStatementTypeChecker.h
-        Helpers/StringFormatter.h
         MetaData/PeHeaders/MsDosHeader.h
         MetaData/PeHeaders/FileHeader.h
         MetaData/PeHeaders/OptionalHeader.h
