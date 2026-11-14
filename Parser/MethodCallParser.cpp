@@ -6,13 +6,37 @@
 
 std::shared_ptr<MethodCallAstNode> MethodCallParser::Parse() const
 {
-     // TODO: Check for constellation identifier: https://github.com/StanLipman/Ceres/issues/21
-    const Token methodIdentifierToken = parser->GetNextToken();
-    assert(methodIdentifierToken.kind == TokenKind::identifier);
+    Token out_peekedToken = parser->PeekNextToken();
+    std::shared_ptr<MemberAccessAstNode> lastMemberAccessAstNode;
+
+    while (true)
+    {
+        const Token identifierToken = parser->GetNextToken();
+        assert(identifierToken.kind == TokenKind::identifier);
+
+        auto memberAccessAstNode = std::make_shared<MemberAccessAstNode>();
+        memberAccessAstNode->member = identifierToken.text;
+        memberAccessAstNode->token = identifierToken;
+
+        if (lastMemberAccessAstNode != nullptr)
+            memberAccessAstNode->object = lastMemberAccessAstNode;
+
+        lastMemberAccessAstNode = memberAccessAstNode;
+
+        out_peekedToken = parser->PeekNextToken();
+
+        if (parser->TryConsumeOnMatchOrSkip(TokenKind::dot))
+            continue;
+
+        if (out_peekedToken.kind == TokenKind::lParen)
+            break;
+    }
+
+    assert(lastMemberAccessAstNode != nullptr);
 
     auto methodCallAstNode = std::make_shared<MethodCallAstNode>();
-    methodCallAstNode->name = methodIdentifierToken.text;
-    methodCallAstNode->token = methodIdentifierToken;
+    methodCallAstNode->callee = lastMemberAccessAstNode;
+    methodCallAstNode->token = lastMemberAccessAstNode->token;
 
     if (!parser->TryConsumeOrError(TokenKind::lParen))
         return nullptr;

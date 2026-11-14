@@ -209,8 +209,10 @@ void PrintAstPass::visit(MethodCallAstNode& node)
     for (size_t i = 0; i < currentDepth; i++)
         printf("-");
 
-    assert(!node.name.empty());
-    printf("%s(", node.name.c_str());
+    assert(node.callee != nullptr);
+    node.callee->accept(*this);
+
+    printf("(");
 
     for (size_t i = 0; i < node.arguments.size(); i++)
     {
@@ -222,4 +224,14 @@ void PrintAstPass::visit(MethodCallAstNode& node)
     }
 
     printf(")\n");
+}
+
+void PrintAstPass::visit(MemberAccessAstNode& node)
+{
+    if (node.object != nullptr)
+    {
+        node.object->accept(*this);
+        printf(".");
+    }
+    printf("%s", node.member.c_str());
 }

@@ -41,6 +41,7 @@
     X(rCurly, "}") \
     X(semicolon, ";") \
     X(comma, ",") \
+    X(dot, ".") \
     /* Control Flow and Logic */ \
     X(transmit, "transmit")
 

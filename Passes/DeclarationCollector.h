@@ -141,6 +141,11 @@ public:
 
     void visit(MethodCallAstNode& node) override
     {
-        // Skip?
+        // Skip
+    }
+
+    void visit(MemberAccessAstNode& node) override
+    {
+        // Skip
     }
 };

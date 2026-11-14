@@ -65,4 +65,11 @@ add_executable(Ceres
         Models/Ast/MethodCallAstNode.h
         Parser/MethodCallParser.cpp
         Parser/MethodCallParser.h
+        Models/Ast/MemberAccessAstNode.cpp
+        Models/Ast/MemberAccessAstNode.h
+        Passes/TypeChecks/TransmitStatementTypeChecker.h
+        Passes/TypeChecks/TransmitStatementTypeChecker.cpp
+        Passes/TypeChecks/MethodCallStatementTypeChecker.cpp
+        Passes/TypeChecks/MethodCallStatementTypeChecker.h
+        Helpers/StringFormatter.h
 )

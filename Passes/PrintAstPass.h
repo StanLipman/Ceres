@@ -17,4 +17,5 @@ public:
     void visit(LiteralValueAstNode& node) override;
     void visit(VariableAstNode& node) override;
     void visit(MethodCallAstNode& node) override;
+    void visit(MemberAccessAstNode& node) override;
 };
