@@ -4,11 +4,9 @@
 #include <vector>
 #include <type_traits>
 
-template<typename T>
+template<typename T> requires std::is_integral_v<T>
 inline void WriteIntegerLittleEndian(std::vector<uint8_t>& bytes, T value)
 {
-    static_assert(std::is_integral_v<T>);
-
     using UnT = std::make_unsigned_t<T>;
     UnT unsignedValue = static_cast<UnT>(value);
 
