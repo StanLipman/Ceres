@@ -73,7 +73,6 @@ public:
     void BuildAst()
     {
         this->documentAstNode = documentParser->Parse();
-        assert(this->documentAstNode != nullptr);
     }
 
     void GiveError(const Token& token, const TokenKind expectedTokenKind) const

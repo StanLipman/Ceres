@@ -3,7 +3,28 @@
 #include "Passes/TypeChecker.h"
 #include "Models/Symbols/MethodSymbol.h"
 
-void TransmitStatementTypeChecker::ValidateStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode, const TransmitAstNode& transmitAstNode)
+void TransmitStatementTypeChecker::ValidateStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode)
+{
+    bool processedTransmitStatement = false;
+
+    for (const auto& statementAstNode : methodAstNode.bodyAstNode->statementAstNodes)
+    {
+        const auto* transmitStatement = dynamic_cast<TransmitAstNode*>(statementAstNode.get());
+        if (transmitStatement == nullptr)
+            continue;
+
+        processedTransmitStatement = true;
+        ValidateTransmitStatement(compilerContext, methodAstNode, *transmitStatement);
+    }
+
+    if (methodAstNode.returnTypeAstNode != nullptr && !processedTransmitStatement)
+    {
+        std::string formattedMessage = "Method '" + methodAstNode.name + "' is missing a transmit statement.";
+        compilerContext->compilationErrors.emplace_back(formattedMessage, methodAstNode.token.location);
+    }
+}
+
+void TransmitStatementTypeChecker::ValidateTransmitStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode, const TransmitAstNode& transmitAstNode)
 {
     const auto& transmitValue = transmitAstNode.transmitValue;
 

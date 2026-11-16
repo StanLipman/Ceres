@@ -67,11 +67,11 @@ public:
         {
             if (const auto* transmitStatement = dynamic_cast<TransmitAstNode*>(statementAstNode.get()); transmitStatement != nullptr)
             {
-                TransmitStatementTypeChecker::ValidateStatement(compilerContext, node, *transmitStatement);
+                TransmitStatementTypeChecker::ValidateStatement(compilerContext, node);
             }
             else if (const auto* methodCallStatement = dynamic_cast<MethodCallAstNode*>(statementAstNode.get()); methodCallStatement != nullptr)
             {
-                MethodCallStatementTypeChecker::ValidateStatement(compilerContext, node, *methodCallStatement);
+                MethodCallStatementTypeChecker::ValidateStatement(compilerContext, node);
             }
         }
     }
@@ -141,7 +141,11 @@ public:
             return nullptr;
 
         const auto& variableSymbol = std::dynamic_pointer_cast<VariableSymbol>(symbol);
-        assert(variableSymbol != nullptr);
-        return variableSymbol->type;
+        if (variableSymbol != nullptr)
+            return variableSymbol->type;
+
+        const auto& constellationSymbol = std::dynamic_pointer_cast<ConstellationSymbol>(symbol);
+        assert(constellationSymbol != nullptr);
+        return constellationSymbol->type;
     }
 };

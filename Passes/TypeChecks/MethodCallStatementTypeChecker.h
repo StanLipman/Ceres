@@ -8,6 +8,7 @@
 class MethodCallStatementTypeChecker
 {
 public:
-    static void ValidateStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode, const MethodCallAstNode& methodCallAstNode);
+    static void ValidateStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode);
+    static void ValidateMethodCall(CompilerContext* compilerContext, const MethodAstNode& methodAstNode, const MethodCallAstNode& methodCallAstNode);
     static std::shared_ptr<Symbol> GetMethodSymbol(CompilerContext* compilerContext, const MethodAstNode& methodAstNode, const std::shared_ptr<MemberAccessAstNode>& memberAccessAstNode);
 };

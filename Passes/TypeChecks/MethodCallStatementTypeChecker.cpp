@@ -6,7 +6,19 @@
 #include "Models/Symbols/MethodSymbol.h"
 #include "Passes/TypeChecker.h"
 
-void MethodCallStatementTypeChecker::ValidateStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode, const MethodCallAstNode& methodCallAstNode)
+void MethodCallStatementTypeChecker::ValidateStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode)
+{
+    for (const auto& statementAstNode : methodAstNode.bodyAstNode->statementAstNodes)
+    {
+        const auto* methodCallStatement = dynamic_cast<MethodCallAstNode*>(statementAstNode.get());
+        if (methodCallStatement == nullptr)
+            continue;
+
+        ValidateMethodCall(compilerContext, methodAstNode, *methodCallStatement);
+    }
+}
+
+void MethodCallStatementTypeChecker::ValidateMethodCall(CompilerContext* compilerContext, const MethodAstNode& methodAstNode, const MethodCallAstNode& methodCallAstNode)
 {
     const auto& calleeAstNode = methodCallAstNode.callee;
     assert(calleeAstNode != nullptr);
