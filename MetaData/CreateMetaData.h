@@ -4,33 +4,35 @@
 #include "PeHeaders/MsDosHeader.h"
 #include "PeHeaders/FileHeader.h"
 #include "PeHeaders/OptionalHeader.h"
+#include "Sections/SectionHeader.h"
+#include <Helpers/AlignmentHelper.h>
 
 inline bool CreateMetaDataFromParseManager(ParseManager& parseManager, std::vector<uint8_t>& bytes)
 {
-	// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#ms-dos-stub-image-only
-	std::vector<uint8_t> msDosHeader = GetMsDosHeader();
-
-	std::vector<uint8_t> peSignature = { 0x50, 0x45, 0x00, 0x00 };
-
-	// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#coff-file-header-object-and-image
-	std::vector<uint8_t> peFileHeader = GetPEFileHeaderTemplate();
-
-	// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#optional-header-image-only
-	std::vector<uint8_t> peOptionalHeader = GetPEOptionalHeaderTemplate();
+	PeFileHeader peFileHeader = GetPeFileHeaderTemplate();
+	PeOptionalHeader peOptionalHeader = GetPeOptionalHeaderTemplate();
+	SectionHeader codeSectionHeader = GetCodeSectionHeaderTemplate();
 
 	// calculate all metadata...
 
-	bytes.reserve(
-		msDosHeader.size() +
-		peSignature.size() +
-		peFileHeader.size() +
-		peOptionalHeader.size()
+	// write metadata...
+
+	// update headers...
+
+	peOptionalHeader.SizeOfHeaders = AlignUp(128 // MS Dos Stub
+		+ sizeof(uint32_t) // PE Signature
+		+ sizeof(PeFileHeader)
+		+ sizeof(PeOptionalHeader)
+		+ (sizeof(SectionHeader) * peFileHeader.NumberOfSections),
+		peOptionalHeader.FileAlignment
 	);
 
-	bytes.insert(bytes.end(), msDosHeader.begin(), msDosHeader.end());
-	bytes.insert(bytes.end(), peSignature.begin(), peSignature.end());
-	bytes.insert(bytes.end(), peFileHeader.begin(), peFileHeader.end());
-	bytes.insert(bytes.end(), peOptionalHeader.begin(), peOptionalHeader.end());
+	WriteMsDosStub(bytes); // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#ms-dos-stub-image-only
+	WriteIntegerLittleEndian(bytes, 0x00004550); // PE Signature
+	WritePeFileHeader(bytes, peFileHeader);
+	WritePeOptionalHeader(bytes, peOptionalHeader);
+	WriteSectionHeader(bytes, codeSectionHeader);
+	// ...
 
 	return true;
 }

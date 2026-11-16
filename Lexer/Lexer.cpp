@@ -30,6 +30,16 @@ void Lexer::LexLine(const std::string& filePath, const std::string& line, const 
     {
         const char c = line[i];
         const auto nextChar = i + 1 < line.size() ? line[i + 1] : '\0';
+
+        if (c == '/')
+        {
+            if (line[i + 1] == '/')
+            {
+                assert(current.empty()); // How else would we handle it?
+                break;
+            }
+        }
+
         if (current.empty())
             startCol = i;
 
