@@ -5,6 +5,7 @@
 #include "PeHeaders/FileHeader.h"
 #include "PeHeaders/OptionalHeader.h"
 #include "Sections/SectionHeader.h"
+#include <Helpers/AlignmentHelper.h>
 
 inline bool CreateMetaDataFromParseManager(ParseManager& parseManager, std::vector<uint8_t>& bytes)
 {
@@ -17,6 +18,14 @@ inline bool CreateMetaDataFromParseManager(ParseManager& parseManager, std::vect
 	// write metadata...
 
 	// update headers...
+
+	peOptionalHeader.SizeOfHeaders = AlignUp(128 // MS Dos Stub
+		+ sizeof(uint32_t) // PE Signature
+		+ sizeof(PeFileHeader)
+		+ sizeof(PeOptionalHeader)
+		+ (sizeof(SectionHeader) * peFileHeader.NumberOfSections),
+		peOptionalHeader.FileAlignment
+	);
 
 	WriteMsDosStub(bytes); // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#ms-dos-stub-image-only
 	WriteIntegerLittleEndian(bytes, 0x00004550); // PE Signature

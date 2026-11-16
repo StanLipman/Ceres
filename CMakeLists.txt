@@ -69,4 +69,5 @@ add_executable(Ceres
         Helpers/LittleEndianHelper.h
         MetaData/Sections/SectionHeader.h 
         MetaData/Characteristics.h
+        Helpers/AlignmentHelper.h
 )
