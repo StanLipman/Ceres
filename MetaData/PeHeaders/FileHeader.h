@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <Helpers/LittleEndianHelper.h>
+#include <MetaData/Characteristics.h>
 
 // II.25.2.2 PE File Header
 // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#coff-file-header-object-and-image
@@ -13,13 +14,19 @@ struct PeFileHeader
 	uint32_t PointerToSymbolTable{};
 	uint32_t NumberOfSymbols{};
 	uint16_t SizeOfOptionalHeader{ 240 }; // 240 bytes for PE32+ optional header
-	uint16_t Characteristics{ 0x2002 }; // IMAGE_FILE_EXECUTABLE_IMAGE | IMAGE_FILE_DLL https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#characteristics
+	uint16_t Characteristics{};
 };
 
 // II.25.2.2 PE File Header
 inline PeFileHeader GetPeFileHeaderTemplate()
 {
-	return {};
+	PeFileHeader fileHeader{};
+
+	fileHeader.Characteristics = Characteristics::COFF::ExecutableImage
+		| Characteristics::COFF::LargeAddressAware
+		| Characteristics::COFF::FileDLL;
+
+	return fileHeader;
 };
 
 inline void WritePeFileHeader(std::vector<uint8_t>& bytes, const PeFileHeader& header)
