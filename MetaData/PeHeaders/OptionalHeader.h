@@ -8,6 +8,7 @@ struct PeDataDirectory
 	uint32_t Size{};
 };
 
+// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#optional-header-image-only
 struct PeOptionalHeader
 {
 	// II.25.2.3.1 PE Header Standard Fields
@@ -35,7 +36,7 @@ struct PeOptionalHeader
 	uint32_t SizeOfHeaders{}; // TODO calculate from DOS header + PE signature + COFF header + Optional Header + Section Headers rounded up to FileAlignment https://github.com/StanLipman/Ceres/issues/3
 	uint32_t CheckSum{};
 	uint16_t Subsystem{ 3 }; // IMAGE_SUBSYSTEM_WINDOWS_CUI
-	uint16_t DllCharacteristics{ 0x8160 }; // IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA (0x0020) | IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE (0x0040) | IMAGE_DLLCHARACTERISTICS_NX_COMPAT (0x0100) | IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE (0x8000)
+	uint16_t DllCharacteristics{};
 	uint64_t SizeOfStackReserve{ 0x0000000000100000 }; // 1MB
 	uint64_t SizeOfStackCommit{ 0x0000000000001000 }; // 4KB
 	uint64_t SizeOfHeapReserve{ 0x0000000000100000 }; // 1MB
@@ -49,7 +50,13 @@ struct PeOptionalHeader
 
 inline PeOptionalHeader GetPeOptionalHeaderTemplate()
 {
-	return {};
+	PeOptionalHeader optionalHeader{};
+
+	optionalHeader.DllCharacteristics = Characteristics::DLL::HighEntropy
+		| Characteristics::DLL::DynamicBase
+		| Characteristics::DLL::TerminalServerAware;
+
+	return optionalHeader;
 }
 
 inline void WritePeOptionalHeader(std::vector<uint8_t>& bytes, const PeOptionalHeader& header)

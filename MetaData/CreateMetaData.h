@@ -4,14 +4,14 @@
 #include "PeHeaders/MsDosHeader.h"
 #include "PeHeaders/FileHeader.h"
 #include "PeHeaders/OptionalHeader.h"
+#include "Sections/SectionHeader.h"
+#include <Helpers/AlignmentHelper.h>
 
 inline bool CreateMetaDataFromParseManager(ParseManager& parseManager, std::vector<uint8_t>& bytes)
 {
-	// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#coff-file-header-object-and-image
 	PeFileHeader peFileHeader = GetPeFileHeaderTemplate();
-
-	// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#optional-header-image-only
 	PeOptionalHeader peOptionalHeader = GetPeOptionalHeaderTemplate();
+	SectionHeader codeSectionHeader = GetCodeSectionHeaderTemplate();
 
 	// calculate all metadata...
 
@@ -19,11 +19,19 @@ inline bool CreateMetaDataFromParseManager(ParseManager& parseManager, std::vect
 
 	// update headers...
 
+	peOptionalHeader.SizeOfHeaders = AlignUp(128 // MS Dos Stub
+		+ sizeof(uint32_t) // PE Signature
+		+ sizeof(PeFileHeader)
+		+ sizeof(PeOptionalHeader)
+		+ (sizeof(SectionHeader) * peFileHeader.NumberOfSections),
+		peOptionalHeader.FileAlignment
+	);
+
 	WriteMsDosStub(bytes); // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#ms-dos-stub-image-only
 	WriteIntegerLittleEndian(bytes, 0x00004550); // PE Signature
 	WritePeFileHeader(bytes, peFileHeader);
 	WritePeOptionalHeader(bytes, peOptionalHeader);
-	// write section header ( https://github.com/StanLipman/Ceres/issues/3 )
+	WriteSectionHeader(bytes, codeSectionHeader);
 	// ...
 
 	return true;
