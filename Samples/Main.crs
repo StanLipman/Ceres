@@ -12,6 +12,8 @@ galaxy Samples {
 
         universal eternal bool Test(int input)
         {
+            // This is a comment
+            // Str()
             transmit true;
         }
 
