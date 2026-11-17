@@ -1,77 +1,80 @@
 #include "LiteralValueParser.h"
-
 #include "ParserManager.h"
 #include "Models/Token.h"
-#include "Models/Ast/TransmitAstNode.h"
 
-void LiteralStringValueParser::Parse(const std::shared_ptr<AstNode> parent, const std::shared_ptr<LiteralStringValueAstNode>& stringValueAstNode)
+
+std::shared_ptr<LiteralValueAstNode> LiteralValueParser::Parse() const
 {
-    const auto transmitAstNode = std::dynamic_pointer_cast<TransmitAstNode>(parent);
-    assert(transmitAstNode != nullptr);
-    const Token literalToken = parser->GetNextToken();
+    const Token literalValueToken = parser->GetNextToken();
+    assert(IsLiteralValueTokenKind(literalValueToken.kind));
 
-    if (literalToken.kind == TokenKind::_char && literalToken.text.size() > 1)
+    if (literalValueToken.kind == TokenKind::_string || literalValueToken.kind == TokenKind::_char)
     {
-        parser->GiveErrorByMessage(literalToken, "Char must be 1 character");
-        return;
+        return ParseStringLiteral(literalValueToken);
     }
 
-    assert(stringValueAstNode->value.empty());
-    stringValueAstNode->value = literalToken.text;
-
-    transmitAstNode->transmitValue = stringValueAstNode;
+    return ParseNumericLiteral(literalValueToken);
 }
 
-void LiteralNumericValueParser::Parse(const std::shared_ptr<AstNode> parent, const std::shared_ptr<LiteralNumericValueAstNode>& numericValueAstNode)
+std::shared_ptr<LiteralValueAstNode> LiteralValueParser::ParseStringLiteral(const Token& literalStringToken) const
 {
-    const Token literalToken = parser->GetNextToken();
+    assert(literalStringToken.kind == TokenKind::_char || literalStringToken.kind == TokenKind::_string);
 
-    const auto transmitAstNode = std::dynamic_pointer_cast<TransmitAstNode>(parent);
-    assert(transmitAstNode != nullptr);
-    if (literalToken.kind == TokenKind::_bool)
+    if (literalStringToken.kind == TokenKind::_char && literalStringToken.text.size() > 1)
     {
-        numericValueAstNode->value._bool = literalToken.text == "true";
-    }
-    else if (literalToken.kind == TokenKind::_byte)
-    {
-        numericValueAstNode->value._byte = static_cast<std::byte>(std::stoi(literalToken.text));
-    }
-    else if (literalToken.kind == TokenKind::_double)
-    {
-        numericValueAstNode->value._double = std::stod(literalToken.text);
-    }
-    else if (literalToken.kind == TokenKind::_float)
-    {
-        numericValueAstNode->value._float = std::stof(literalToken.text);
-    }
-    else if (literalToken.kind == TokenKind::_short)
-    {
-        numericValueAstNode->value._short = static_cast<int16_t>(std::stoi(literalToken.text));
-    }
-    else if (literalToken.kind == TokenKind::_ushort)
-    {
-        numericValueAstNode->value._ushort = static_cast<uint16_t>(std::stoul(literalToken.text));
-    }
-    else if (literalToken.kind == TokenKind::_int)
-    {
-        numericValueAstNode->value._int = std::stoi(literalToken.text);
-    }
-    else if (literalToken.kind == TokenKind::_uint)
-    {
-        numericValueAstNode->value._uint = std::stoul(literalToken.text);
-    }
-    else if (literalToken.kind == TokenKind::_long)
-    {
-        numericValueAstNode->value._long = std::stol(literalToken.text);
-    }
-    else if (literalToken.kind == TokenKind::_ulong)
-    {
-        numericValueAstNode->value._ulong = std::stoul(literalToken.text);
-    }
-    else
-    {
-        assert(false); // What happened?
+        parser->GiveErrorByMessage(literalStringToken, "Char must be 1 character");
+        return nullptr;
     }
 
-    transmitAstNode->transmitValue = numericValueAstNode;
+    auto stringAstNode = std::make_shared<LiteralStringValueAstNode>(literalStringToken);
+    stringAstNode->value = literalStringToken.text;
+
+    return stringAstNode;
+}
+
+std::shared_ptr<LiteralValueAstNode> LiteralValueParser::ParseNumericLiteral(const Token& literalToken)
+{
+    assert(IsLiteralValueTokenKind(literalToken.kind) && literalToken.kind != TokenKind::_char && literalToken.kind != TokenKind::_string);
+
+    const auto numericAstNode = std::make_shared<LiteralNumericValueAstNode>(literalToken);
+
+    switch (literalToken.kind)
+    {
+    case TokenKind::_bool:
+        numericAstNode->value._bool = literalToken.text == "true";
+        break;
+    case TokenKind::_byte:
+        numericAstNode->value._byte = static_cast<std::byte>(std::stoi(literalToken.text));
+        break;
+    case TokenKind::_double:
+        numericAstNode->value._double = std::stod(literalToken.text);
+        break;
+    case TokenKind::_float:
+        numericAstNode->value._float = std::stof(literalToken.text);
+        break;
+    case TokenKind::_short:
+        numericAstNode->value._short = static_cast<int16_t>(std::stoi(literalToken.text));
+        break;
+    case TokenKind::_ushort:
+        numericAstNode->value._ushort = static_cast<uint16_t>(std::stoul(literalToken.text));
+        break;
+    case TokenKind::_int:
+        numericAstNode->value._int = std::stoi(literalToken.text);
+        break;
+    case TokenKind::_uint:
+        numericAstNode->value._uint = std::stoul(literalToken.text);
+        break;
+    case TokenKind::_long:
+        numericAstNode->value._long = std::stol(literalToken.text);
+        break;
+    case TokenKind::_ulong:
+        numericAstNode->value._ulong = std::stoul(literalToken.text);
+        break;
+    default:
+    case TokenKind::none:
+        assert(false); // Not allowed
+        break;
+    }
+
+    return numericAstNode;
 }

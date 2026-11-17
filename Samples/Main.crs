@@ -1,17 +1,21 @@
-galaxy Samples {
-    universal eternal constellation Program {
+galaxy Samples
+{
+    universal eternal constellation Program
+    {
+        universal eternal vacuum Main()
+        {
+            Testers.TestMethod(1);
+            transmit;
+        }
+
         universal eternal string Str()
         {
             transmit "asdf";
         }
 
-        universal eternal vacuum Main()
-        {
-            transmit;
-        }
-
         universal eternal bool Test(int input)
         {
+            Test2(input, "asdf");
             // This is a comment
             // Str()
             transmit true;
@@ -22,10 +26,22 @@ galaxy Samples {
             transmit 123;
         }
 
-        universal eternal Program Test3(int input, string str) { }
+        universal eternal Program Test3(int input, string str)
+        {
+            transmit Program;
+        }
 
         universal eternal int ReturnIntArgument(int input)
         {
+            transmit input;
+        }
+    }
+
+    universal eternal constellation Testers
+    {
+        universal eternal int TestMethod(int input)
+        {
+            Samples.Program.Str();
             transmit input;
         }
     }

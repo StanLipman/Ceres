@@ -52,11 +52,11 @@
         "patterns": [
             {
                 "name": "storage.modifier.ceres",
-                "match": "\\b(universal|local|shielded|enclosed|eternal|ethereal|fluit|transform|bound|secured|absolute)\\b"
+                "match": "\\b(universal|local|shielded|enclosed|eternal|ethereal|fluid|transform|bound|secured|absolute)\\b"
             },
             {
                 "name": "storage.type.class",
-                "match": "\\b(constellation)\\b"
+                "match": "\\b(constellation|galaxy)\\b"
             },
             {
                 "name": "storage.type",

@@ -8,11 +8,14 @@
 #include "Models/Ast/ConstellationAstNode.h"
 #include "Models/Ast/LiteralValueAstNode.h"
 #include "Models/Ast/MethodAstNode.h"
+#include "Models/Ast/MethodCallAstNode.h"
 #include "Models/Ast/TransmitAstNode.h"
 #include "Models/Ast/TypeAstNode.h"
 #include "Models/Ast/VariableAstNode.h"
 #include "Models/Symbols/ConstellationSymbol.h"
 #include "Models/Symbols/MethodSymbol.h"
+#include "TypeChecks/TransmitStatementTypeChecker.h"
+#include "TypeChecks/MethodCallStatementTypeChecker.h"
 
 class TypeChecker : public AstVisitor
 {
@@ -59,51 +62,9 @@ public:
         assert(methodSymbol->type != nullptr);
         const auto& methodType = methodSymbol->type;
         assert(methodType->returnType != nullptr);
-        const auto& returnType = methodType->returnType;
-        assert(returnType != nullptr);
 
-        for (const auto& statementAstNode : node.bodyAstNode->statementAstNodes)
-        {
-            // Right now a body can only contain transmit statements
-            const auto* transmitStatement = dynamic_cast<TransmitAstNode*>(statementAstNode.get());
-            assert(transmitStatement != nullptr);
-            const auto& transmitValue = transmitStatement->transmitValue;
-
-            const std::shared_ptr<Type>& transmitValueType = GetType(node.scope, transmitValue);
-            if (transmitValueType != returnType)
-            {
-                std::string formattedMessage;
-                SourceLocation location;
-
-                if (transmitValue == nullptr)
-                {
-                    formattedMessage = "Method '" + node.name + "' expected transmit type of '" + node.returnTypeAstNode->name + "', but got empty transmit.";
-                    location = transmitStatement->token.location;
-                }
-                else if (const auto& literalValue = std::dynamic_pointer_cast<LiteralValueAstNode>(transmitValue); literalValue != nullptr)
-                {
-                    const TokenKind transmitValueTokenKind = literalValue->tokenKind;
-                    formattedMessage = "Method '" + node.name + "' expected transmit type of '" + node.returnTypeAstNode->name + "', but '" + GetTokenKindText(transmitValueTokenKind) + "' got transmitted.";
-                    location = literalValue->token.location;
-                }
-                else if (const auto& variable = std::dynamic_pointer_cast<VariableAstNode>(transmitValue); variable != nullptr)
-                {
-                    if (transmitValueType == nullptr)
-                    {
-                        formattedMessage = "Tried to transmit undefined value of name '" + variable->name + "'";
-                        location = transmitStatement->token.location;
-                    }
-                    else
-                    {
-                        formattedMessage = "Method '" + node.name + "' expected transmit type of '" + node.returnTypeAstNode->name + "', but '" + transmitValueType->GetTypeKindText() + "' got transmitted.";
-                        location = variable->token.location;
-                    }
-                }
-
-                compilerContext->compilationErrors.emplace_back(formattedMessage, location);
-                return;
-            }
-        }
+        TransmitStatementTypeChecker::ValidateStatement(compilerContext, node);
+        MethodCallStatementTypeChecker::ValidateStatement(compilerContext, node);
     }
 
     void visit(TypeAstNode& node) override
@@ -126,7 +87,17 @@ public:
         // Skip? Handled in MethodAstNode
     }
 
-private:
+    void visit(MethodCallAstNode& node) override
+    {
+        // TODO: Do we need to handle this?
+        // Maybe we here do the validation if the method exists, and if the passed arguments are valid
+    }
+
+    void visit(MemberAccessAstNode& node) override
+    {
+        // TODO: Maybe
+    }
+
     static std::shared_ptr<Type> GetType(const std::shared_ptr<Scope>& scope, const std::shared_ptr<AstNode>& node)
     {
         // This is dirty, and only works for transmit statements. Otherwise this is broken logic
@@ -161,7 +132,11 @@ private:
             return nullptr;
 
         const auto& variableSymbol = std::dynamic_pointer_cast<VariableSymbol>(symbol);
-        assert(variableSymbol != nullptr);
-        return variableSymbol->type;
+        if (variableSymbol != nullptr)
+            return variableSymbol->type;
+
+        const auto& constellationSymbol = std::dynamic_pointer_cast<ConstellationSymbol>(symbol);
+        assert(constellationSymbol != nullptr);
+        return constellationSymbol->type;
     }
 };

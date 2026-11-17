@@ -33,10 +33,20 @@ int main(const int argc, char* argv[])
 
     parseManager.BuildAst();
 
+    const auto documentNode = parseManager.GetDocumentAstNode();
+    if (documentNode == nullptr)
+    {
+        printf("Error during parsing. No document could be parsed.\n\n");
+
+        for (const auto& compilationError : compilerContext.compilationErrors)
+            compilationError.PrintError();
+
+        return 1;
+    }
+
     if (compilerContext.printAst)
     {
         PrintAstPass printAstPass;
-        const auto documentNode = parseManager.GetDocumentAstNode();
         printAstPass.visit(*documentNode);
     }
 

@@ -119,12 +119,14 @@ void Lexer::LexLine(const std::string& filePath, const std::string& line, const 
             continue;
         }
 
-        if ((std::isspace(c) || tokenKindMap.contains(std::string {nextChar})) && !current.empty())
+        if (i == line.size() - 1 || (std::isspace(c) || tokenKindMap.contains(std::string {nextChar})) && !current.empty())
         {
             HandleCompleteToken(current, TokenKind::identifier, filePath, lineNr, startCol);
             continue;
         }
     }
+
+    assert(current.empty());
 }
 
 void Lexer::HandleCompleteToken(std::string& tokenText, TokenKind tokenKind, const std::string& filePath, const size_t lineNr, const size_t startCol)

@@ -8,6 +8,7 @@ class Type
 public:
     enum TypeKind
     {
+        none = 0,
         _bool,
         _byte,
         _char,
@@ -26,7 +27,7 @@ public:
     };
 
     TypeId id;
-    TypeKind kind;
+    TypeKind kind = none;
 
     virtual ~Type() = default;
 

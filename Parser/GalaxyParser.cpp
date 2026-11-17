@@ -2,42 +2,23 @@
 #include "ParserManager.h"
 #include "Models/Token.h"
 
-void GalaxyParser::Parse(const std::shared_ptr<AstNode> parent, const std::shared_ptr<GalaxyAstNode>& galaxy)
+std::shared_ptr<GalaxyAstNode> GalaxyParser::Parse() const
 {
-    assert(parent == nullptr);
+    const Token galaxyToken = parser->GetNextToken();
+    assert(galaxyToken.kind == TokenKind::galaxy);
 
-    const Token identifierToken = parser->GetNextToken();
+    Token identifierToken;
+    if (!parser->TryGetNextTokenOrError(TokenKind::identifier, identifierToken))
+        return nullptr;
 
-    if (identifierToken.kind != TokenKind::identifier)
-    {
-        parser->GiveError(identifierToken, TokenKind::identifier);
-        return;
-    }
+    const auto bodyAstNode = parser->bodyParser->ParseGalaxyBody();
+    if (bodyAstNode == nullptr)
+        return nullptr;
 
-    assert(galaxy->name.empty());
-    galaxy->name = identifierToken.text;
+    auto galaxyAstNode = std::make_shared<GalaxyAstNode>();
+    galaxyAstNode->token = galaxyToken;
+    galaxyAstNode->name = identifierToken.text;
+    galaxyAstNode->bodyAstNode = bodyAstNode;
 
-    const Token leftCurlyToken = parser->GetNextToken();
-    if (leftCurlyToken.kind != TokenKind::lCurly)
-    {
-        parser->GiveError(leftCurlyToken, TokenKind::lCurly);
-        return;
-    }
-
-    const auto bodyAstNode = std::make_shared<BodyAstNode>();
-    bodyAstNode->leftCurlyToken = leftCurlyToken;
-
-    assert(galaxy->bodyAstNode == nullptr);
-    galaxy->bodyAstNode = bodyAstNode;
-
-    parser->bodyParser->Parse(galaxy, bodyAstNode);
-
-    const Token rightCurlyToken = parser->GetNextToken();
-    if (rightCurlyToken.kind != TokenKind::rCurly)
-    {
-        parser->GiveError(rightCurlyToken, TokenKind::rCurly);
-        return;
-    }
-
-    bodyAstNode->rightCurlyToken = rightCurlyToken;
+    return galaxyAstNode;
 }

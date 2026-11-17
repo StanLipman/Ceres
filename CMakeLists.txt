@@ -21,7 +21,6 @@ add_executable(Ceres
         Models/Ast/TypeAstNode.h
         Parser/GalaxyParser.h
         Parser/DocumentParser.h
-        Parser/BaseParser.h
         Parser/GalaxyParser.cpp
         Parser/DocumentParser.cpp
         Parser/BodyParser.cpp
@@ -62,6 +61,16 @@ add_executable(Ceres
         Parser/TransmitParser.h
         Models/Ast/VariableAstNode.cpp
         Models/Ast/VariableAstNode.h
+        Models/Ast/MethodCallAstNode.cpp
+        Models/Ast/MethodCallAstNode.h
+        Parser/MethodCallParser.cpp
+        Parser/MethodCallParser.h
+        Models/Ast/MemberAccessAstNode.cpp
+        Models/Ast/MemberAccessAstNode.h
+        Passes/TypeChecks/TransmitStatementTypeChecker.h
+        Passes/TypeChecks/TransmitStatementTypeChecker.cpp
+        Passes/TypeChecks/MethodCallStatementTypeChecker.cpp
+        Passes/TypeChecks/MethodCallStatementTypeChecker.h
         MetaData/PeHeaders/MsDosHeader.h
         MetaData/PeHeaders/FileHeader.h
         MetaData/PeHeaders/OptionalHeader.h

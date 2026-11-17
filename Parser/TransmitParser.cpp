@@ -1,48 +1,37 @@
 #include "TransmitParser.h"
-
 #include "ParserManager.h"
-#include "Models/Ast/MethodAstNode.h"
 #include "Models/Ast/VariableAstNode.h"
 
-void TransmitParser::Parse(const std::shared_ptr<AstNode> parent, const std::shared_ptr<TransmitAstNode>& transmitAstNode)
+std::shared_ptr<TransmitAstNode> TransmitParser::Parse() const
 {
-    const auto methodAstNode = std::dynamic_pointer_cast<MethodAstNode>(parent);
-    assert(methodAstNode != nullptr); // What other parent can transmit values?
+    const Token transmitToken = parser->GetNextToken();
+    assert(transmitToken.kind == TokenKind::transmit);
 
-    assert(methodAstNode->bodyAstNode != nullptr);
-    methodAstNode->bodyAstNode->statementAstNodes.push_back(transmitAstNode);
+    auto transmitAstNode = std::make_shared<TransmitAstNode>();
+    transmitAstNode->token = transmitToken;
 
-    const Token peekToken = parser->PeekNextToken();
+    const Token peekValueToken = parser->PeekNextToken();
 
-    if (IsLiteralValueTokenKind(peekToken.kind))
+    if (IsLiteralValueTokenKind(peekValueToken.kind))
     {
-        assert(transmitAstNode->transmitValue == nullptr);
+        const auto literalValueAstNode = parser->literalValueParser->Parse();
+        if (literalValueAstNode == nullptr)
+            return nullptr;
 
-        if (const Token literalToken = parser->PeekNextToken(); literalToken.kind == TokenKind::_string || literalToken.kind == TokenKind::_char)
-        {
-            const auto& stringAstNode = std::make_shared<LiteralStringValueAstNode>(literalToken);
-            parser->literalStringValueParser->Parse(transmitAstNode, stringAstNode);
-        }
-        else
-        {
-            const auto& numericAstNode = std::make_shared<LiteralNumericValueAstNode>(literalToken);
-            parser->literalNumericValueParser->Parse(transmitAstNode, numericAstNode);
-        }
+        transmitAstNode->transmitValue = literalValueAstNode;
     }
-    else if (peekToken.kind == TokenKind::identifier)
+    else if (peekValueToken.kind == TokenKind::identifier)
     {
         const Token identifierToken = parser->GetNextToken();
-        const auto& variableAstNode = std::make_shared<VariableAstNode>();
+        const auto variableAstNode = std::make_shared<VariableAstNode>();
         variableAstNode->token = identifierToken;
         variableAstNode->name = identifierToken.text;
 
-        assert(transmitAstNode->transmitValue == nullptr);
         transmitAstNode->transmitValue = variableAstNode;
     }
 
-    if (const Token token = parser->GetNextToken(); token.kind != TokenKind::semicolon)
-    {
-        parser->GiveError(token, TokenKind::semicolon);
-        return;
-    }
+    if (!parser->TryConsumeOrError(TokenKind::semicolon))
+        return nullptr;
+
+    return transmitAstNode;
 }
