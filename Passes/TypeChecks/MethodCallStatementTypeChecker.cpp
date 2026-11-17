@@ -49,8 +49,7 @@ void MethodCallStatementTypeChecker::ValidateMethodCall(CompilerContext* compile
 
     for (size_t i = 0; i < methodCallAstNode.arguments.size(); i++)
     {
-        if (i > callingMethodSymbol->type->parameterTypes.size())
-            break; // More arguments were provided then expected
+        assert(i < callingMethodSymbol->type->parameterTypes.size());
 
         const auto& providedArgument = methodCallAstNode.arguments[i];
         assert(providedArgument != nullptr);

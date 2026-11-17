@@ -63,17 +63,8 @@ public:
         const auto& methodType = methodSymbol->type;
         assert(methodType->returnType != nullptr);
 
-        for (const auto& statementAstNode : node.bodyAstNode->statementAstNodes)
-        {
-            if (const auto* transmitStatement = dynamic_cast<TransmitAstNode*>(statementAstNode.get()); transmitStatement != nullptr)
-            {
-                TransmitStatementTypeChecker::ValidateStatement(compilerContext, node);
-            }
-            else if (const auto* methodCallStatement = dynamic_cast<MethodCallAstNode*>(statementAstNode.get()); methodCallStatement != nullptr)
-            {
-                MethodCallStatementTypeChecker::ValidateStatement(compilerContext, node);
-            }
-        }
+        TransmitStatementTypeChecker::ValidateStatement(compilerContext, node);
+        MethodCallStatementTypeChecker::ValidateStatement(compilerContext, node);
     }
 
     void visit(TypeAstNode& node) override

@@ -52,7 +52,7 @@ std::shared_ptr<BodyAstNode> BodyParser::ParseConstellationBody() const
 
     while (peekedToken.kind != TokenKind::rCurly)
     {
-        // TODO: Make handling between methods, and fields
+        // TODO: Make handling between methods, and fields: https://github.com/StanLipman/Ceres/issues/33
         const auto methodAstNode = parser->methodParser->Parse();
         if (methodAstNode != nullptr)
             bodyAstNode->statementAstNodes.push_back(methodAstNode);
