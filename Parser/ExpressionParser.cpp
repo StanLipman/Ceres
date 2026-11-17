@@ -11,6 +11,10 @@ std::shared_ptr<ExpressionAstNode> ExpressionParser::ParseExpression() const
     if (!parser->TryGetNextTokenOrError(TokenKind::identifier, typeIdentifierToken))
         return nullptr;
 
+    const auto typeAstNode = std::make_shared<TypeAstNode>();
+    typeAstNode->token = typeIdentifierToken;
+    typeAstNode->name = typeIdentifierToken.text;
+
     Token variableNameIdentifierToken;
     if (!parser->TryGetNextTokenOrError(TokenKind::identifier, variableNameIdentifierToken))
         return nullptr;
@@ -18,7 +22,7 @@ std::shared_ptr<ExpressionAstNode> ExpressionParser::ParseExpression() const
     auto variableDeclarationAstNode = std::make_shared<VariableDeclarationAstNode>();
     variableDeclarationAstNode->name = variableNameIdentifierToken.text;
     variableDeclarationAstNode->token = variableNameIdentifierToken;
-    variableDeclarationAstNode->typeToken = typeIdentifierToken;
+    variableDeclarationAstNode->type = typeAstNode;
 
     // TODO: Allow declaration only, no assignment
     Token assignToken;
@@ -32,12 +36,27 @@ std::shared_ptr<ExpressionAstNode> ExpressionParser::ParseExpression() const
 
     if (parser->PeekNextToken().kind == TokenKind::identifier)
     {
-        const auto variableToken = parser->GetNextToken();
-        const auto variableAstNode = std::make_shared<VariableAstNode>();
-        variableAstNode->token = variableToken;
-        variableAstNode->name = variableToken.text;
+        if (parser->PeekXForwardToken(1).kind == TokenKind::semicolon) // If an identifier is followed by an semicolon it is a variable
+        {
+            const auto variableIdentifierToken = parser->GetNextToken();
+            const auto variableAstNode = std::make_shared<VariableAstNode>();
+            variableAstNode->token = variableIdentifierToken;
+            variableAstNode->name = variableIdentifierToken.text;
 
-        assignExpressionAstNode->assignee = variableAstNode;
+            assignExpressionAstNode->assignee = variableAstNode;
+
+            auto result = parser->TryConsumeOrError(TokenKind::semicolon);
+            assert(result);
+
+            return variableDeclarationAstNode;
+        }
+
+        const auto& methodCallAstNode = parser->methodCallParser->Parse();
+        if (methodCallAstNode != nullptr)
+        {
+            assignExpressionAstNode->assignee = methodCallAstNode;
+            return variableDeclarationAstNode; // The semicolon is handled by the method call parsing
+        }
     }
     else
     {

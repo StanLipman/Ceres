@@ -245,9 +245,9 @@ void PrintAstPass::visit(ExpressionAstNode& node)
         for (size_t i = 0; i < currentDepth; i++)
             printf("-");
 
-        assert(variableDeclarationAstNode->typeToken != EmptyToken);
+        assert(variableDeclarationAstNode->type != nullptr);
         assert(variableDeclarationAstNode->assignmentExpression != nullptr);
-        printf("%s %s", variableDeclarationAstNode->typeToken.text.c_str(), variableDeclarationAstNode->name.c_str());
+        printf("%s %s", variableDeclarationAstNode->type->name.c_str(), variableDeclarationAstNode->name.c_str());
 
         variableDeclarationAstNode->assignmentExpression->accept(*this);
         return;
@@ -259,8 +259,19 @@ void PrintAstPass::visit(ExpressionAstNode& node)
         assert(assignExpressionAstNode->token != EmptyToken);
         assert(assignExpressionAstNode->assignee != nullptr);
         printf(" = ");
-        assignExpressionAstNode->assignee->accept(*this);
-        printf("\n");
+
+        if (const auto* methodCallAstNode = dynamic_cast<MethodCallAstNode*>(assignExpressionAstNode->assignee.get()); methodCallAstNode != nullptr)
+        {
+            const int tempDepth = currentDepth;
+            currentDepth = 0;
+            assignExpressionAstNode->assignee->accept(*this);
+            currentDepth = tempDepth;
+        }
+        else
+        {
+            assignExpressionAstNode->assignee->accept(*this);
+            printf("\n");
+        }
         return;
     }
 

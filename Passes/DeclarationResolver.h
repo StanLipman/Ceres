@@ -151,7 +151,24 @@ public:
 
     void visit(ExpressionAstNode& node) override
     {
-        // Skip
+        const auto variableDeclarationAstNode = dynamic_cast<VariableDeclarationAstNode*>(&node);
+        if (variableDeclarationAstNode == nullptr)
+            return;
+
+        const auto variableSymbol = std::make_shared<VariableSymbol>();
+        assert(!variableDeclarationAstNode->name.empty());
+        assert(variableDeclarationAstNode->type != nullptr);
+        variableSymbol->name = variableDeclarationAstNode->name;
+        variableSymbol->type = ResolveType(*variableDeclarationAstNode->type);
+
+        if (variableSymbol->type == nullptr)
+            return; // Error has been handled in ResolveType
+
+        if (currentScope->Insert(variableSymbol))
+            return;
+
+        std::string formattedMessage = "Duplicate variable '" + variableDeclarationAstNode->name + "'";
+        compilerContext->compilationErrors.emplace_back(formattedMessage, variableDeclarationAstNode->type->token.location);
     }
 
 private:

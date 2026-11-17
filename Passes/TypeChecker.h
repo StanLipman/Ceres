@@ -15,6 +15,7 @@
 #include "Models/Ast/ExpressionAstNode.h"
 #include "Models/Symbols/ConstellationSymbol.h"
 #include "Models/Symbols/MethodSymbol.h"
+#include "TypeChecks/ExpressionStatementTypeChecker.h"
 #include "TypeChecks/TransmitStatementTypeChecker.h"
 #include "TypeChecks/MethodCallStatementTypeChecker.h"
 
@@ -66,6 +67,7 @@ public:
 
         TransmitStatementTypeChecker::ValidateStatement(compilerContext, node);
         MethodCallStatementTypeChecker::ValidateStatement(compilerContext, node);
+        ExpressionStatementTypeChecker::ValidateStatement(compilerContext, node);
     }
 
     void visit(TypeAstNode& node) override
@@ -119,6 +121,14 @@ public:
 
         if (const auto& variableAstNode = std::dynamic_pointer_cast<VariableAstNode>(node); variableAstNode != nullptr)
             return GetType(scope, variableAstNode);
+
+        if (const auto& typeAstNode = std::dynamic_pointer_cast<TypeAstNode>(node); typeAstNode != nullptr)
+        {
+            const auto& symbol = scope->Lookup(typeAstNode->name);
+            const auto& constellation = std::dynamic_pointer_cast<ConstellationSymbol>(symbol);
+            assert(constellation != nullptr);
+            return constellation->type;
+        }
 
         assert(false); // What other ways of transmitting do we have?
         return nullptr;

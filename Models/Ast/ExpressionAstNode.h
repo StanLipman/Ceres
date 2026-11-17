@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "AstNodes.h"
+#include "TypeAstNode.h"
 #include "Models/Token.h"
 
 class ExpressionAstNode: public AstNode
@@ -21,7 +22,7 @@ public:
 class VariableDeclarationAstNode: public ExpressionAstNode
 {
 public:
-    Token typeToken = EmptyToken;
     std::string name;
+    std::shared_ptr<TypeAstNode> type;
     std::shared_ptr<AssignExpressionAstNode> assignmentExpression;
 };

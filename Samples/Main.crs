@@ -32,11 +32,13 @@ galaxy Samples
 
         universal eternal Program Test3(int input, string str)
         {
+            int fromReturn = Testers.TestMethod(str);
             transmit Program;
         }
 
         universal eternal int Test4(int input)
         {
+            Program myProgram = Program;
             int myInt = input;
             transmit myInt;
         }
