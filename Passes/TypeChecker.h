@@ -64,24 +64,8 @@ public:
         const auto& methodType = methodSymbol->type;
         assert(methodType->returnType != nullptr);
 
-        for (const auto& statementAstNode : node.bodyAstNode->statementAstNodes)
-        {
-            if (const auto& transmitStatement = std::dynamic_pointer_cast<TransmitAstNode>(statementAstNode); transmitStatement != nullptr)
-            {
-                TransmitStatementTypeChecker::ValidateStatement(compilerContext, node);
-            }
-            else if (const auto& methodCallStatement = std::dynamic_pointer_cast<MethodCallAstNode>(statementAstNode); methodCallStatement != nullptr)
-            {
-                MethodCallStatementTypeChecker::ValidateStatement(compilerContext, node);
-            }
-            else if (const auto& variableDeclaration = std::dynamic_pointer_cast<VariableDeclarationAstNode>(statementAstNode); variableDeclaration != nullptr)
-            {
-            }
-            else
-            {
-                assert(false);
-            }
-        }
+        TransmitStatementTypeChecker::ValidateStatement(compilerContext, node);
+        MethodCallStatementTypeChecker::ValidateStatement(compilerContext, node);
     }
 
     void visit(TypeAstNode& node) override
@@ -113,6 +97,11 @@ public:
     void visit(MemberAccessAstNode& node) override
     {
         // TODO: Maybe
+    }
+
+    void visit(ExpressionAstNode& node) override
+    {
+        // TODO:
     }
 
     static std::shared_ptr<Type> GetType(const std::shared_ptr<Scope>& scope, const std::shared_ptr<AstNode>& node)
@@ -155,10 +144,5 @@ public:
         const auto& constellationSymbol = std::dynamic_pointer_cast<ConstellationSymbol>(symbol);
         assert(constellationSymbol != nullptr);
         return constellationSymbol->type;
-    }
-
-    void visit(ExpressionAstNode& node) override
-    {
-        // TODO:
     }
 };
