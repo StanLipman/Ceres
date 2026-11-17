@@ -4,6 +4,7 @@
 #include "Models/Ast/ArgumentAstNode.h"
 #include "Models/Ast/BodyAstNode.h"
 #include "Models/Ast/ConstellationAstNode.h"
+#include "Models/Ast/ExpressionAstNode.h"
 #include "Models/Ast/LiteralValueAstNode.h"
 #include "Models/Ast/MethodAstNode.h"
 #include "Models/Ast/MethodCallAstNode.h"
@@ -234,4 +235,34 @@ void PrintAstPass::visit(MemberAccessAstNode& node)
         printf(".");
     }
     printf("%s", node.member.c_str());
+}
+
+void PrintAstPass::visit(ExpressionAstNode& node)
+{
+    const auto variableDeclarationAstNode = dynamic_cast<VariableDeclarationAstNode*>(&node);
+    if (variableDeclarationAstNode != nullptr)
+    {
+        for (size_t i = 0; i < currentDepth; i++)
+            printf("-");
+
+        assert(variableDeclarationAstNode->typeToken != EmptyToken);
+        assert(variableDeclarationAstNode->assignmentExpression != nullptr);
+        printf("%s %s", variableDeclarationAstNode->typeToken.text.c_str(), variableDeclarationAstNode->name.c_str());
+
+        variableDeclarationAstNode->assignmentExpression->accept(*this);
+        return;
+    }
+
+    const auto assignExpressionAstNode = dynamic_cast<AssignExpressionAstNode*>(&node);
+    if (assignExpressionAstNode != nullptr)
+    {
+        assert(assignExpressionAstNode->token != EmptyToken);
+        assert(assignExpressionAstNode->assignee != nullptr);
+        printf(" = ");
+        assignExpressionAstNode->assignee->accept(*this);
+        printf("\n");
+        return;
+    }
+
+    assert(false);
 }

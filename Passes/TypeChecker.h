@@ -12,6 +12,7 @@
 #include "Models/Ast/TransmitAstNode.h"
 #include "Models/Ast/TypeAstNode.h"
 #include "Models/Ast/VariableAstNode.h"
+#include "Models/Ast/ExpressionAstNode.h"
 #include "Models/Symbols/ConstellationSymbol.h"
 #include "Models/Symbols/MethodSymbol.h"
 #include "TypeChecks/TransmitStatementTypeChecker.h"
@@ -65,13 +66,20 @@ public:
 
         for (const auto& statementAstNode : node.bodyAstNode->statementAstNodes)
         {
-            if (const auto* transmitStatement = dynamic_cast<TransmitAstNode*>(statementAstNode.get()); transmitStatement != nullptr)
+            if (const auto& transmitStatement = std::dynamic_pointer_cast<TransmitAstNode>(statementAstNode); transmitStatement != nullptr)
             {
                 TransmitStatementTypeChecker::ValidateStatement(compilerContext, node);
             }
-            else if (const auto* methodCallStatement = dynamic_cast<MethodCallAstNode*>(statementAstNode.get()); methodCallStatement != nullptr)
+            else if (const auto& methodCallStatement = std::dynamic_pointer_cast<MethodCallAstNode>(statementAstNode); methodCallStatement != nullptr)
             {
                 MethodCallStatementTypeChecker::ValidateStatement(compilerContext, node);
+            }
+            else if (const auto& variableDeclaration = std::dynamic_pointer_cast<VariableDeclarationAstNode>(statementAstNode); variableDeclaration != nullptr)
+            {
+            }
+            else
+            {
+                assert(false);
             }
         }
     }
@@ -147,5 +155,10 @@ public:
         const auto& constellationSymbol = std::dynamic_pointer_cast<ConstellationSymbol>(symbol);
         assert(constellationSymbol != nullptr);
         return constellationSymbol->type;
+    }
+
+    void visit(ExpressionAstNode& node) override
+    {
+        // TODO:
     }
 };

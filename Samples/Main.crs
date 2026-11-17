@@ -21,11 +21,22 @@ galaxy Samples {
 
         universal eternal int Test2(int input, string str)
         {
+            int myInt = 1;
+            string myString = "asdf";
+            int argumentCopy = input;
+
             transmit 123;
         }
 
-        universal eternal Program Test3(int input, string str) {
+        universal eternal Program Test3(int input, string str)
+        {
             transmit Program;
+        }
+
+        universal eternal int Test4(int input)
+        {
+            int myInt = input;
+            transmit myInt;
         }
 
         universal eternal int ReturnIntArgument(int input)
