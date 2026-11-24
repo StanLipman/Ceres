@@ -84,11 +84,7 @@
         "patterns": [
             {
                 "name": "keyword.control.import.ceres",
-                "match": "\\b(import)\\b"
-            },
-            {
-                "name": "variable.language.ceres",
-                "match": "\\b(self|origin|auto)\\b"
+                "match": "\\b(import|auto|self|origin)\\b"
             },
             {
                 "name": "keyword.control.ceres",

@@ -8,12 +8,13 @@
 #include "Models/Ast/ConstellationAstNode.h"
 #include "Models/Ast/LiteralValueAstNode.h"
 #include "Models/Ast/MethodAstNode.h"
-#include "Models/Ast/MethodCallAstNode.h"
-#include "Models/Ast/TransmitAstNode.h"
 #include "Models/Ast/TypeAstNode.h"
 #include "Models/Ast/VariableAstNode.h"
+#include "Models/Ast/ExpressionAstNode.h"
 #include "Models/Symbols/ConstellationSymbol.h"
 #include "Models/Symbols/MethodSymbol.h"
+#include "SemanticChecks/MethodHasTransmitStatementChecker.h"
+#include "TypeChecks/ExpressionStatementTypeChecker.h"
 #include "TypeChecks/TransmitStatementTypeChecker.h"
 #include "TypeChecks/MethodCallStatementTypeChecker.h"
 
@@ -21,24 +22,37 @@ class TypeChecker : public AstVisitor
 {
 private:
     CompilerContext* compilerContext;
+    std::shared_ptr<Scope> currentScope;
 
 public:
     explicit TypeChecker(CompilerContext* compiler_context) : compilerContext(compiler_context) { }
 
     void visit(DocumentAstNode& node) override
     {
+        assert(node.scope != nullptr);
+        currentScope = node.scope;
+
         for (const auto& galaxyAstNode : node.galaxyAstNodes)
             galaxyAstNode->accept(*this);
+
+        assert(currentScope->parent != nullptr);
+        currentScope = currentScope->parent;
     }
 
     void visit(GalaxyAstNode& node) override
     {
+        assert(node.scope != nullptr);
+        currentScope = node.scope;
+
         node.bodyAstNode->accept(*this);
+
+        assert(currentScope->parent != nullptr);
+        currentScope = currentScope->parent;
     }
 
     void visit(ArgumentAstNode& node) override
     {
-        // Skip
+        node.typeAstNode->accept(*this);
     }
 
     void visit(BodyAstNode& node) override
@@ -49,7 +63,13 @@ public:
 
     void visit(ConstellationAstNode& node) override
     {
+        assert(node.scope != nullptr);
+        currentScope = node.scope;
+
         node.bodyAstNode->accept(*this);
+
+        assert(currentScope->parent != nullptr);
+        currentScope = currentScope->parent;
     }
 
     void visit(MethodAstNode& node) override
@@ -63,42 +83,80 @@ public:
         const auto& methodType = methodSymbol->type;
         assert(methodType->returnType != nullptr);
 
-        TransmitStatementTypeChecker::ValidateStatement(compilerContext, node);
-        MethodCallStatementTypeChecker::ValidateStatement(compilerContext, node);
+        assert(node.scope != nullptr);
+        currentScope = node.scope;
+
+        MethodHasTransmitStatementChecker::ValidateMethod(compilerContext, node);
+
+        for (const auto& argumentAstNode : node.argumentAstNodes)
+            argumentAstNode->accept(*this);
+
+        node.returnTypeAstNode->accept(*this);
+        node.bodyAstNode->accept(*this);
+
+        assert(currentScope->parent != nullptr);
+        currentScope = currentScope->parent;
     }
 
     void visit(TypeAstNode& node) override
     {
-        // Skip?
+        // Skip
     }
 
     void visit(TransmitAstNode& node) override
     {
-        // Skip? Handled in MethodAstNode?
+        if (node.transmitValue != nullptr)
+            node.transmitValue->accept(*this);
+
+        TransmitStatementTypeChecker::ValidateTransmitStatement(compilerContext, currentScope, node);
     }
 
     void visit(LiteralValueAstNode& node) override
     {
-        // Skip? Handled in MethodAstNode
+        // Skip
     }
 
     void visit(VariableAstNode& node) override
     {
-        // Skip? Handled in MethodAstNode
+        // Skip
     }
 
     void visit(MethodCallAstNode& node) override
     {
-        // TODO: Do we need to handle this?
-        // Maybe we here do the validation if the method exists, and if the passed arguments are valid
+        for (const auto& argument : node.arguments)
+            argument->accept(*this);
+
+        node.callee->accept(*this);
+
+        MethodCallStatementTypeChecker::ValidateMethodCall(compilerContext, currentScope, node);
     }
 
     void visit(MemberAccessAstNode& node) override
     {
-        // TODO: Maybe
+        if (node.object == nullptr)
+            return;
+
+        node.object->accept(*this);
     }
 
-    static std::shared_ptr<Type> GetType(const std::shared_ptr<Scope>& scope, const std::shared_ptr<AstNode>& node)
+    void visit(ExpressionAstNode& node) override
+    {
+        const auto* variableDeclarationAstNode = dynamic_cast<VariableDeclarationAstNode*>(&node);
+        if (variableDeclarationAstNode != nullptr)
+        {
+            variableDeclarationAstNode->type->accept(*this);
+            variableDeclarationAstNode->assignmentExpression->accept(*this);
+
+            ExpressionStatementTypeChecker::ValidateVariableDeclarationStatement(compilerContext, currentScope, *variableDeclarationAstNode);
+        }
+    }
+
+    void visit(AutoAstNode& node) override
+    {
+        // Skip
+    }
+
+    static std::shared_ptr<Type> GetType(const std::shared_ptr<Scope>& scope, const AstNode* node)
     {
         // This is dirty, and only works for transmit statements. Otherwise this is broken logic
         if (node == nullptr)
@@ -108,24 +166,32 @@ public:
             return constellation->type;
         }
 
-        if (const auto& literalValueAstNode = std::dynamic_pointer_cast<LiteralValueAstNode>(node); literalValueAstNode != nullptr)
+        if (const auto* literalValueAstNode = dynamic_cast<const LiteralValueAstNode*>(node); literalValueAstNode != nullptr)
             return GetType(scope, literalValueAstNode);
 
-        if (const auto& variableAstNode = std::dynamic_pointer_cast<VariableAstNode>(node); variableAstNode != nullptr)
+        if (const auto* variableAstNode = dynamic_cast<const VariableAstNode*>(node); variableAstNode != nullptr)
             return GetType(scope, variableAstNode);
+
+        if (const auto* typeAstNode = dynamic_cast<const TypeAstNode*>(node); typeAstNode != nullptr)
+        {
+            const auto& symbol = scope->Lookup(typeAstNode->name);
+            const auto& constellation = std::dynamic_pointer_cast<ConstellationSymbol>(symbol);
+            assert(constellation != nullptr);
+            return constellation->type;
+        }
 
         assert(false); // What other ways of transmitting do we have?
         return nullptr;
     }
 
-    static std::shared_ptr<Type> GetType(const std::shared_ptr<Scope>& scope, const std::shared_ptr<LiteralValueAstNode>& node)
+    static std::shared_ptr<Type> GetType(const std::shared_ptr<Scope>& scope, const LiteralValueAstNode* node)
     {
         const auto& symbol = scope->Lookup(GetTokenKindText(node->tokenKind));
         const auto& constellation = dynamic_cast<ConstellationSymbol*>(symbol.get());
         return constellation->type;
     }
 
-    static std::shared_ptr<Type> GetType(const std::shared_ptr<Scope>& scope, const std::shared_ptr<VariableAstNode>& node)
+    static std::shared_ptr<Type> GetType(const std::shared_ptr<Scope>& scope, const VariableAstNode* node)
     {
         const auto& symbol = scope->Lookup(node->name);
         if (symbol == nullptr)

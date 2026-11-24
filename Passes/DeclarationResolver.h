@@ -2,6 +2,8 @@
 #include <memory>
 
 #include "AstVisitor.h"
+#include "AutoResolver.h"
+#include "Models/Ast/AutoAstNode.h"
 #include "Models/Ast/DocumentAstNode.h"
 #include "Models/Ast/TransmitAstNode.h"
 #include "Models/Scopes/Scope.h"
@@ -145,6 +147,53 @@ public:
     }
 
     void visit(MemberAccessAstNode& node) override
+    {
+        // Skip
+    }
+
+    void visit(ExpressionAstNode& node) override
+    {
+        const auto variableDeclarationAstNode = dynamic_cast<VariableDeclarationAstNode*>(&node);
+        if (variableDeclarationAstNode == nullptr)
+            return;
+
+        const auto variableSymbol = std::make_shared<VariableSymbol>();
+        assert(!variableDeclarationAstNode->name.empty());
+        assert(variableDeclarationAstNode->type != nullptr);
+        variableSymbol->name = variableDeclarationAstNode->name;
+
+        if (const auto& typeAstNode = std::dynamic_pointer_cast<TypeAstNode>(variableDeclarationAstNode->type); typeAstNode != nullptr)
+        {
+            variableSymbol->type = ResolveType(*typeAstNode);
+
+            if (variableSymbol->type == nullptr)
+                return; // Error has been handled in ResolveType
+
+            if (currentScope->Insert(variableSymbol))
+                return;
+
+            std::string formattedMessage = "Duplicate variable '" + variableDeclarationAstNode->name + "'";
+            compilerContext->compilationErrors.emplace_back(formattedMessage, typeAstNode->token.location);
+            return;
+        }
+
+        const auto& autoAstNode = std::dynamic_pointer_cast<AutoAstNode>(variableDeclarationAstNode->type);
+        assert(autoAstNode != nullptr);
+        assert(!autoAstNode->token.text.empty());
+
+        const auto& resolvedType = AutoResolver::ResolveType(currentScope, *variableDeclarationAstNode);
+        assert(resolvedType != nullptr);
+
+        variableSymbol->type = resolvedType;
+
+        if (currentScope->Insert(variableSymbol))
+            return;
+
+        std::string formattedMessage = "Duplicate variable '" + variableDeclarationAstNode->name + "'";
+        compilerContext->compilationErrors.emplace_back(formattedMessage, autoAstNode->token.location);
+    }
+
+    void visit(AutoAstNode& node) override
     {
         // Skip
     }

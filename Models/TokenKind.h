@@ -42,6 +42,7 @@
     X(semicolon, ";") \
     X(comma, ",") \
     X(dot, ".") \
+    X(assign, "=") \
     /* Control Flow and Logic */ \
     X(transmit, "transmit")
 

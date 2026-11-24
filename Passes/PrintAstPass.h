@@ -18,4 +18,6 @@ public:
     void visit(VariableAstNode& node) override;
     void visit(MethodCallAstNode& node) override;
     void visit(MemberAccessAstNode& node) override;
+    void visit(ExpressionAstNode& node) override;
+    void visit(AutoAstNode& node) override;
 };

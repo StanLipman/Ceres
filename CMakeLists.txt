@@ -79,4 +79,15 @@ add_executable(Ceres
         MetaData/Sections/SectionHeader.h 
         MetaData/Characteristics.h
         Helpers/AlignmentHelper.h
+        Parser/ExpressionParser.cpp
+        Parser/ExpressionParser.h
+        Models/Ast/ExpressionAstNode.cpp
+        Models/Ast/ExpressionAstNode.h
+        Passes/TypeChecks/ExpressionStatementTypeChecker.cpp
+        Passes/TypeChecks/ExpressionStatementTypeChecker.h
+        Models/Ast/AutoAstNode.cpp
+        Models/Ast/AutoAstNode.h
+        Passes/AutoResolver.h
+        Passes/SemanticChecks/MethodHasTransmitStatementChecker.cpp
+        Passes/SemanticChecks/MethodHasTransmitStatementChecker.h
 )
