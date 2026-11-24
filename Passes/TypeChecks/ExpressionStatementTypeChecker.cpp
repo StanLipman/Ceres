@@ -1,31 +1,30 @@
 #include "ExpressionStatementTypeChecker.h"
 
 #include "Models/Ast/ExpressionAstNode.h"
+#include "Passes/AutoResolver.h"
 #include "Passes/TypeChecker.h"
 
-void ExpressionStatementTypeChecker::ValidateStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode)
-{
-    for (const auto& statementAstNode : methodAstNode.bodyAstNode->statementAstNodes)
-    {
-        const auto& variableDeclarationAstNode = std::dynamic_pointer_cast<VariableDeclarationAstNode>(statementAstNode);
-        if (variableDeclarationAstNode == nullptr)
-            continue;
-
-        ValidateVariableDeclarationStatement(compilerContext, methodAstNode, *variableDeclarationAstNode);
-    }
-}
-
-void ExpressionStatementTypeChecker::ValidateVariableDeclarationStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode, const VariableDeclarationAstNode& variableDeclarationAstNode)
+void ExpressionStatementTypeChecker::ValidateVariableDeclarationStatement(CompilerContext* compilerContext, const std::shared_ptr<Scope>& scope, const VariableDeclarationAstNode& variableDeclarationAstNode)
 {
     assert(variableDeclarationAstNode.type != nullptr);
-    const auto& typeTypeAstNode = variableDeclarationAstNode.type;
-    const auto& typeType = TypeChecker::GetType(methodAstNode.scope, typeTypeAstNode);
+    const auto& typeTypeAstNode = std::dynamic_pointer_cast<TypeAstNode>(variableDeclarationAstNode.type);
+    std::shared_ptr<Type> typeType;
+
+    if (typeTypeAstNode != nullptr)
+    {
+        typeType = TypeChecker::GetType(scope, typeTypeAstNode.get());
+    }
+    else
+    {
+        assert(std::dynamic_pointer_cast<AutoAstNode>(variableDeclarationAstNode.type) != nullptr);
+        typeType = AutoResolver::ResolveType(scope, variableDeclarationAstNode);
+    }
     assert(typeType != nullptr); // Should have been handled in DeclarationResolver.h
 
     const auto& assignee = variableDeclarationAstNode.assignmentExpression->assignee;
     if (const auto& literalValueAstNode = std::dynamic_pointer_cast<LiteralValueAstNode>(assignee); literalValueAstNode != nullptr)
     {
-        const auto& literalValueType = TypeChecker::GetType(methodAstNode.scope, literalValueAstNode);
+        const auto& literalValueType = TypeChecker::GetType(scope, literalValueAstNode.get());
         assert(literalValueType != nullptr);
 
         if (literalValueType == typeType)
@@ -36,7 +35,7 @@ void ExpressionStatementTypeChecker::ValidateVariableDeclarationStatement(Compil
     }
     else if (const auto& variableValueAstNode = std::dynamic_pointer_cast<VariableAstNode>(assignee); variableValueAstNode != nullptr)
     {
-        const auto& symbol = methodAstNode.scope->Lookup(variableValueAstNode->name);
+        const auto& symbol = scope->Lookup(variableValueAstNode->name);
         if (const auto& variableSymbol = std::dynamic_pointer_cast<VariableSymbol>(symbol); variableSymbol != nullptr)
         {
             assert(variableSymbol->type != nullptr);
@@ -65,10 +64,8 @@ void ExpressionStatementTypeChecker::ValidateVariableDeclarationStatement(Compil
     }
     else if (const auto& methodCallAstNode = std::dynamic_pointer_cast<MethodCallAstNode>(assignee); methodCallAstNode != nullptr)
     {
-        MethodCallStatementTypeChecker::ValidateMethodCall(compilerContext, methodAstNode, *methodCallAstNode);
-
         assert(methodCallAstNode->callee != nullptr);
-        const auto& symbol = MethodCallStatementTypeChecker::GetMethodSymbol(compilerContext, methodAstNode, methodCallAstNode->callee);
+        const auto& symbol = MethodCallStatementTypeChecker::GetMethodSymbol(compilerContext, scope, methodCallAstNode->callee);
 
         const auto& callingMethodSymbol = std::dynamic_pointer_cast<MethodSymbol>(symbol);
         assert(callingMethodSymbol != nullptr);
@@ -76,7 +73,7 @@ void ExpressionStatementTypeChecker::ValidateVariableDeclarationStatement(Compil
         const auto& callingMethodDeclaration = callingMethodSymbol->declaration;
         assert(callingMethodDeclaration != nullptr);
         assert(callingMethodDeclaration->returnTypeAstNode != nullptr);
-        const auto& callingMethodReturnType = TypeChecker::GetType(methodAstNode.scope, callingMethodDeclaration->returnTypeAstNode);
+        const auto& callingMethodReturnType = TypeChecker::GetType(scope, callingMethodDeclaration->returnTypeAstNode.get());
         assert(callingMethodReturnType != nullptr);
 
         if (callingMethodReturnType == typeType)

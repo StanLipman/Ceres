@@ -6,6 +6,5 @@
 class ExpressionStatementTypeChecker
 {
 public:
-    static void ValidateStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode);
-    static void ValidateVariableDeclarationStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode, const VariableDeclarationAstNode& variableDeclarationAstNode);
+    static void ValidateVariableDeclarationStatement(CompilerContext* compilerContext, const std::shared_ptr<Scope>& scope, const VariableDeclarationAstNode& variableDeclarationAstNode);
 };

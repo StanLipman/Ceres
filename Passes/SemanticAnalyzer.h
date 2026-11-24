@@ -55,6 +55,7 @@ private:
         MakePrimitiveType("long", Type::TypeKind::_long);
         MakePrimitiveType("ulong", Type::TypeKind::_ulong);
         MakePrimitiveType("string", Type::TypeKind::string);
+        MakePrimitiveType("auto", Type::TypeKind::_auto);
         }
 
     void MakePrimitiveType(const std::string& name, const Type::TypeKind kind)

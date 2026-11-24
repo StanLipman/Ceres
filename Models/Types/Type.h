@@ -24,6 +24,7 @@ public:
         vacuum,
         constellation,
         method,
+        _auto,
     };
 
     TypeId id;

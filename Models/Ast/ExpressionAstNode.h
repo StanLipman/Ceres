@@ -23,6 +23,6 @@ class VariableDeclarationAstNode: public ExpressionAstNode
 {
 public:
     std::string name;
-    std::shared_ptr<TypeAstNode> type;
+    std::shared_ptr<AstNode> type;
     std::shared_ptr<AssignExpressionAstNode> assignmentExpression;
 };

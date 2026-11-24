@@ -2,6 +2,7 @@
 #include "Models/Ast/DocumentAstNode.h"
 #include "Models/Ast/GalaxyAstNode.h"
 #include "Models/Ast/ArgumentAstNode.h"
+#include "Models/Ast/AutoAstNode.h"
 #include "Models/Ast/BodyAstNode.h"
 #include "Models/Ast/ConstellationAstNode.h"
 #include "Models/Ast/ExpressionAstNode.h"
@@ -247,7 +248,16 @@ void PrintAstPass::visit(ExpressionAstNode& node)
 
         assert(variableDeclarationAstNode->type != nullptr);
         assert(variableDeclarationAstNode->assignmentExpression != nullptr);
-        printf("%s %s", variableDeclarationAstNode->type->name.c_str(), variableDeclarationAstNode->name.c_str());
+
+        if (const auto* typeAstNode = dynamic_cast<TypeAstNode*>(variableDeclarationAstNode->type.get()); typeAstNode != nullptr)
+        {
+            printf("%s %s", typeAstNode->name.c_str(), variableDeclarationAstNode->name.c_str());
+        }
+        else
+        {
+            assert(dynamic_cast<AutoAstNode*>(variableDeclarationAstNode->type.get()) != nullptr);
+            printf("auto %s", variableDeclarationAstNode->name.c_str());
+        }
 
         variableDeclarationAstNode->assignmentExpression->accept(*this);
         return;

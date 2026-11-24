@@ -10,7 +10,9 @@ galaxy Samples
 
         universal eternal string Str()
         {
-            transmit "asdf";
+            auto test = "autoType";
+            Test2(1, test);
+            transmit test;
         }
 
         universal eternal bool Test(int input)

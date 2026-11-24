@@ -85,4 +85,9 @@ add_executable(Ceres
         Models/Ast/ExpressionAstNode.h
         Passes/TypeChecks/ExpressionStatementTypeChecker.cpp
         Passes/TypeChecks/ExpressionStatementTypeChecker.h
+        Models/Ast/AutoAstNode.cpp
+        Models/Ast/AutoAstNode.h
+        Passes/AutoResolver.h
+        Passes/SemanticChecks/MethodHasTransmitStatementChecker.cpp
+        Passes/SemanticChecks/MethodHasTransmitStatementChecker.h
 )

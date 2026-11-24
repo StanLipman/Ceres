@@ -2,18 +2,32 @@
 
 #include "ParserManager.h"
 #include "Models/Token.h"
+#include "Models/Ast/AutoAstNode.h"
 #include "Models/Ast/VariableAstNode.h"
 
 std::shared_ptr<ExpressionAstNode> ExpressionParser::ParseExpression() const
 {
-    // This is currently only assuming variable declaration with assignment
-    Token typeIdentifierToken;
-    if (!parser->TryGetNextTokenOrError(TokenKind::identifier, typeIdentifierToken))
-        return nullptr;
+    std::shared_ptr<AstNode> typeOrAutoAstNode;
+    if (Token typeIdentifierToken; parser->TryGetNextTokenOnMatchOrSkip(TokenKind::identifier, typeIdentifierToken))
+    {
+        const auto typeAstNode = std::make_shared<TypeAstNode>();
+        typeAstNode->token = typeIdentifierToken;
+        typeAstNode->name = typeIdentifierToken.text;
 
-    const auto typeAstNode = std::make_shared<TypeAstNode>();
-    typeAstNode->token = typeIdentifierToken;
-    typeAstNode->name = typeIdentifierToken.text;
+        typeOrAutoAstNode = typeAstNode;
+    }
+    else
+    {
+        Token autoToken;
+        if (!parser->TryGetNextTokenOrError(TokenKind::_auto, autoToken))
+            return nullptr;
+
+        const auto autoAstNode = std::make_shared<AutoAstNode>();
+        autoAstNode->token = autoToken;
+
+        typeOrAutoAstNode = autoAstNode;
+    }
+
 
     Token variableNameIdentifierToken;
     if (!parser->TryGetNextTokenOrError(TokenKind::identifier, variableNameIdentifierToken))
@@ -22,9 +36,8 @@ std::shared_ptr<ExpressionAstNode> ExpressionParser::ParseExpression() const
     auto variableDeclarationAstNode = std::make_shared<VariableDeclarationAstNode>();
     variableDeclarationAstNode->name = variableNameIdentifierToken.text;
     variableDeclarationAstNode->token = variableNameIdentifierToken;
-    variableDeclarationAstNode->type = typeAstNode;
+    variableDeclarationAstNode->type = typeOrAutoAstNode;
 
-    // TODO: Allow declaration only, no assignment
     Token assignToken;
     if (!parser->TryGetNextTokenOrError(TokenKind::assign, assignToken))
         return nullptr;

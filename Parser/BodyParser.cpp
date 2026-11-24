@@ -69,7 +69,7 @@ std::shared_ptr<BodyAstNode> BodyParser::ParseConstellationBody() const
     return bodyAstNode;
 }
 
-std::shared_ptr<BodyAstNode> BodyParser::ParseMethodBody() const
+std::shared_ptr<BodyAstNode> BodyParser::ParseMethodBody(const std::shared_ptr<MethodAstNode>& parent) const
 {
     Token lCurlyToken;
     if (!parser->TryGetNextTokenOrError(TokenKind::lCurly, lCurlyToken))
@@ -87,9 +87,12 @@ std::shared_ptr<BodyAstNode> BodyParser::ParseMethodBody() const
         {
             const auto transmitAstNode = parser->transmitParser->Parse();
             if (transmitAstNode != nullptr)
+            {
+                transmitAstNode->parent = parent;
                 bodyAstNode->statementAstNodes.push_back(transmitAstNode);
+            }
         }
-        else if (peekedToken.kind == TokenKind::identifier)
+        else if (peekedToken.kind == TokenKind::identifier || peekedToken.kind == TokenKind::_auto)
         {
             const Token nextToken = parser->PeekXForwardToken(1);
             if (nextToken.kind == TokenKind::identifier)

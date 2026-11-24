@@ -3,33 +3,13 @@
 #include "Passes/TypeChecker.h"
 #include "Models/Symbols/MethodSymbol.h"
 
-void TransmitStatementTypeChecker::ValidateStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode)
+void TransmitStatementTypeChecker::ValidateTransmitStatement(CompilerContext* compilerContext, const std::shared_ptr<Scope>& scope, const TransmitAstNode& transmitAstNode)
 {
-    bool processedTransmitStatement = false;
-
-    for (const auto& statementAstNode : methodAstNode.bodyAstNode->statementAstNodes)
-    {
-        const auto* transmitStatement = dynamic_cast<TransmitAstNode*>(statementAstNode.get());
-        if (transmitStatement == nullptr)
-            continue;
-
-        processedTransmitStatement = true;
-        ValidateTransmitStatement(compilerContext, methodAstNode, *transmitStatement);
-    }
-
-    if (methodAstNode.returnTypeAstNode != nullptr && !processedTransmitStatement)
-    {
-        std::string formattedMessage = "Method '" + methodAstNode.name + "' is missing a transmit statement.";
-        compilerContext->compilationErrors.emplace_back(formattedMessage, methodAstNode.token.location);
-    }
-}
-
-void TransmitStatementTypeChecker::ValidateTransmitStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode, const TransmitAstNode& transmitAstNode)
-{
+    assert(transmitAstNode.parent != nullptr);
+    const auto& methodAstNode = transmitAstNode.parent;
     const auto& transmitValue = transmitAstNode.transmitValue;
 
-    assert(methodAstNode.scope != nullptr);
-    const auto* methodSymbol = dynamic_cast<MethodSymbol*>(methodAstNode.scope->Lookup(methodAstNode.name).get());
+    const auto* methodSymbol = dynamic_cast<MethodSymbol*>(scope->Lookup(methodAstNode->name).get());
 
     assert(methodSymbol != nullptr);
     assert(methodSymbol->type != nullptr);
@@ -39,7 +19,7 @@ void TransmitStatementTypeChecker::ValidateTransmitStatement(CompilerContext* co
     const auto& returnType = methodType->returnType;
     assert(returnType != nullptr);
 
-    const std::shared_ptr<Type>& transmitValueType = TypeChecker::GetType(methodAstNode.scope, transmitValue);
+    const std::shared_ptr<Type>& transmitValueType = TypeChecker::GetType(scope, transmitValue.get());
     if (transmitValueType != returnType)
     {
         std::string formattedMessage;
@@ -47,13 +27,13 @@ void TransmitStatementTypeChecker::ValidateTransmitStatement(CompilerContext* co
 
         if (transmitValue == nullptr)
         {
-            formattedMessage = "Method '" + methodAstNode.name + "' expected transmit type of '" + methodAstNode.returnTypeAstNode->name + "', but got empty transmit.";
+            formattedMessage = "Method '" + methodAstNode->name + "' expected transmit type of '" + methodAstNode->returnTypeAstNode->name + "', but got empty transmit.";
             location = transmitAstNode.token.location;
         }
         else if (const auto& literalValue = std::dynamic_pointer_cast<LiteralValueAstNode>(transmitValue); literalValue != nullptr)
         {
             const TokenKind transmitValueTokenKind = literalValue->tokenKind;
-            formattedMessage = "Method '" + methodAstNode.name + "' expected transmit type of '" + methodAstNode.returnTypeAstNode->name + "', but '" + GetTokenKindText(transmitValueTokenKind) + "' got transmitted.";
+            formattedMessage = "Method '" + methodAstNode->name + "' expected transmit type of '" + methodAstNode->returnTypeAstNode->name + "', but '" + GetTokenKindText(transmitValueTokenKind) + "' got transmitted.";
             location = literalValue->token.location;
         }
         else if (const auto& variable = std::dynamic_pointer_cast<VariableAstNode>(transmitValue); variable != nullptr)
@@ -65,7 +45,7 @@ void TransmitStatementTypeChecker::ValidateTransmitStatement(CompilerContext* co
             }
             else
             {
-                formattedMessage = "Method '" + methodAstNode.name + "' expected transmit type of '" + methodAstNode.returnTypeAstNode->name + "', but '" + transmitValueType->GetTypeKindText() + "' got transmitted.";
+                formattedMessage = "Method '" + methodAstNode->name + "' expected transmit type of '" + methodAstNode->returnTypeAstNode->name + "', but '" + transmitValueType->GetTypeKindText() + "' got transmitted.";
                 location = variable->token.location;
             }
         }

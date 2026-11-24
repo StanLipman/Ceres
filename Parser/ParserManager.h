@@ -119,6 +119,20 @@ public:
         return true;
     }
 
+    bool TryGetNextTokenOnMatchOrSkip(const TokenKind expectedTokenKind, Token& outToken)
+    {
+        const Token nextToken = PeekNextToken();
+        if (nextToken.kind != expectedTokenKind)
+        {
+            outToken = EmptyToken;
+            return false;
+        }
+
+        outToken = GetNextToken();
+        assert(outToken.kind == expectedTokenKind);
+        return true;
+    }
+
     bool TryGetNextTokenOrError(const TokenKind expectedTokenKind, Token& outToken)
     {
         const Token nextToken = GetNextToken();
