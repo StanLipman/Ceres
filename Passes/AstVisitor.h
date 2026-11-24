@@ -14,6 +14,7 @@ class VariableAstNode;
 class MethodCallAstNode;
 class MemberAccessAstNode;
 class ExpressionAstNode;
+class AutoAstNode;
 
 class AstVisitor {
     public:
@@ -32,4 +33,5 @@ class AstVisitor {
     virtual void visit(MethodCallAstNode& node) = 0;
     virtual void visit(MemberAccessAstNode& node) = 0;
     virtual void visit(ExpressionAstNode& node) = 0;
+    virtual void visit(AutoAstNode& node) = 0;
 };

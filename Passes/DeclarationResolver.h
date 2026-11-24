@@ -193,6 +193,11 @@ public:
         compilerContext->compilationErrors.emplace_back(formattedMessage, autoAstNode->token.location);
     }
 
+    void visit(AutoAstNode& node) override
+    {
+        // Skip
+    }
+
 private:
     std::shared_ptr<Type> ResolveType(const TypeAstNode& typeAstNode) const
     {

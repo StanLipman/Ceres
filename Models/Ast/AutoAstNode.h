@@ -5,7 +5,7 @@
 class AutoAstNode: public AstNode
 {
 public:
-    Token token;
+    Token token = EmptyToken;
 
     void accept(AstVisitor& visitor) override;
 };

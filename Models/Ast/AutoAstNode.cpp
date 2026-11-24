@@ -1,6 +1,8 @@
 #include "AutoAstNode.h"
 
+#include "Passes/AstVisitor.h"
+
 void AutoAstNode::accept(AstVisitor& visitor)
 {
-    // What if I just don't want to implement this?
+    visitor.visit(*this);
 }

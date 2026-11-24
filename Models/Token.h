@@ -18,8 +18,8 @@ struct Token {
     bool operator==(const Token& token) const
     {
         return this->kind == token.kind &&
-            this->text == token.text &&
-                this->location == token.location;
+               this->text == token.text &&
+               this->location == token.location;
     };
 };
 
@@ -27,9 +27,9 @@ static Token EmptyToken = {
     .kind = TokenKind::none,
     .text = "",
     .location = {
-        "",
-        0,
-        0,
+        .filePath = "",
+        .line = 0,
+        .column = 0,
     }
 };
 

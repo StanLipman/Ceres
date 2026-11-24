@@ -249,15 +249,8 @@ void PrintAstPass::visit(ExpressionAstNode& node)
         assert(variableDeclarationAstNode->type != nullptr);
         assert(variableDeclarationAstNode->assignmentExpression != nullptr);
 
-        if (const auto* typeAstNode = dynamic_cast<TypeAstNode*>(variableDeclarationAstNode->type.get()); typeAstNode != nullptr)
-        {
-            printf("%s %s", typeAstNode->name.c_str(), variableDeclarationAstNode->name.c_str());
-        }
-        else
-        {
-            assert(dynamic_cast<AutoAstNode*>(variableDeclarationAstNode->type.get()) != nullptr);
-            printf("auto %s", variableDeclarationAstNode->name.c_str());
-        }
+        variableDeclarationAstNode->type->accept(*this);
+        printf(" %s", variableDeclarationAstNode->name.c_str());
 
         variableDeclarationAstNode->assignmentExpression->accept(*this);
         return;
@@ -286,4 +279,9 @@ void PrintAstPass::visit(ExpressionAstNode& node)
     }
 
     assert(false);
+}
+
+void PrintAstPass::visit(AutoAstNode& node)
+{
+    printf("%s", GetTokenKindText(node.token.kind).c_str());
 }

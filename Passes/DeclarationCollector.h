@@ -153,4 +153,9 @@ public:
     {
         // Skip
     }
+
+    void visit(AutoAstNode& node) override
+    {
+        // Skip
+    }
 };

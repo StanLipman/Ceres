@@ -151,6 +151,11 @@ public:
         }
     }
 
+    void visit(AutoAstNode& node) override
+    {
+        // Skip
+    }
+
     static std::shared_ptr<Type> GetType(const std::shared_ptr<Scope>& scope, const AstNode* node)
     {
         // This is dirty, and only works for transmit statements. Otherwise this is broken logic
