@@ -69,7 +69,7 @@ std::shared_ptr<BodyAstNode> BodyParser::ParseConstellationBody() const
     return bodyAstNode;
 }
 
-std::shared_ptr<BodyAstNode> BodyParser::ParseMethodBody() const
+std::shared_ptr<BodyAstNode> BodyParser::ParseMethodBody(const std::shared_ptr<MethodAstNode>& parent) const
 {
     Token lCurlyToken;
     if (!parser->TryGetNextTokenOrError(TokenKind::lCurly, lCurlyToken))
@@ -87,14 +87,38 @@ std::shared_ptr<BodyAstNode> BodyParser::ParseMethodBody() const
         {
             const auto transmitAstNode = parser->transmitParser->Parse();
             if (transmitAstNode != nullptr)
+            {
+                transmitAstNode->parent = parent;
                 bodyAstNode->statementAstNodes.push_back(transmitAstNode);
-
+            }
         }
-        else if (peekedToken.kind == TokenKind::identifier)
+        else if (peekedToken.kind == TokenKind::identifier || peekedToken.kind == TokenKind::_auto)
         {
-            const auto methodCallAstNode = parser->methodCallParser->Parse();
-            if (methodCallAstNode != nullptr)
-                bodyAstNode->statementAstNodes.push_back(methodCallAstNode);
+            const Token nextToken = parser->PeekXForwardToken(1);
+            if (nextToken.kind == TokenKind::identifier)
+            {
+                const auto variableDeclarationAstNode = parser->expressionParser->ParseVariableDeclarationExpression();
+                if (variableDeclarationAstNode != nullptr)
+                    bodyAstNode->statementAstNodes.push_back(variableDeclarationAstNode);
+            }
+            else if (nextToken.kind == TokenKind::lParen || nextToken.kind == TokenKind::dot)
+            {
+                const auto methodCallAstNode = parser->methodCallParser->Parse();
+                if (methodCallAstNode != nullptr)
+                    bodyAstNode->statementAstNodes.push_back(methodCallAstNode);
+            }
+            else if (nextToken.kind == TokenKind::assign)
+            {
+                const auto variablesAssignmentAstNode = parser->expressionParser->ParseVariableAssignmentExpression();
+                if (variablesAssignmentAstNode != nullptr)
+                    bodyAstNode->statementAstNodes.push_back(variablesAssignmentAstNode);
+            }
+            else
+            {
+                parser->GiveErrorByMessage(peekedToken, "Unexpected token while parsing method");
+                assert(false);
+                break;
+            }
         }
         else if (peekedToken.kind == TokenKind::rCurly)
         {

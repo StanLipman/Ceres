@@ -6,33 +6,25 @@
 #include "Models/Symbols/MethodSymbol.h"
 #include "Passes/TypeChecker.h"
 
-void MethodCallStatementTypeChecker::ValidateStatement(CompilerContext* compilerContext, const MethodAstNode& methodAstNode)
-{
-    for (const auto& statementAstNode : methodAstNode.bodyAstNode->statementAstNodes)
-    {
-        const auto* methodCallStatement = dynamic_cast<MethodCallAstNode*>(statementAstNode.get());
-        if (methodCallStatement == nullptr)
-            continue;
-
-        ValidateMethodCall(compilerContext, methodAstNode, *methodCallStatement);
-    }
-}
-
-void MethodCallStatementTypeChecker::ValidateMethodCall(CompilerContext* compilerContext, const MethodAstNode& methodAstNode, const MethodCallAstNode& methodCallAstNode)
+void MethodCallStatementTypeChecker::ValidateMethodCall(CompilerContext* compilerContext, const std::shared_ptr<Scope>& scope, const MethodCallAstNode& methodCallAstNode)
 {
     const auto& calleeAstNode = methodCallAstNode.callee;
     assert(calleeAstNode != nullptr);
 
-    const auto& symbol = GetMethodSymbol(compilerContext, methodAstNode, calleeAstNode);
-    assert(symbol != nullptr);
+    const auto& symbol = GetMethodSymbol(compilerContext, scope, calleeAstNode);
+    if (symbol == nullptr)
+    {
+        const std::string formattedMessage = "Method '" + calleeAstNode->member + "' does not exist.";
+        compilerContext->compilationErrors.emplace_back(formattedMessage, methodCallAstNode.token.location);
+        return;
+    }
 
     const auto& callingMethodSymbol = std::dynamic_pointer_cast<MethodSymbol>(symbol);
 
     if (callingMethodSymbol == nullptr)
     {
         const std::string formattedMessage = "Method '" + calleeAstNode->member + "' does not exist.";
-        const SourceLocation location = methodCallAstNode.token.location;
-        compilerContext->compilationErrors.emplace_back(formattedMessage, location);
+        compilerContext->compilationErrors.emplace_back(formattedMessage, methodCallAstNode.token.location);
         return;
     }
 
@@ -53,7 +45,7 @@ void MethodCallStatementTypeChecker::ValidateMethodCall(CompilerContext* compile
 
         const auto& providedArgument = methodCallAstNode.arguments[i];
         assert(providedArgument != nullptr);
-        const auto& providedArgumentType = TypeChecker::GetType(methodAstNode.scope, providedArgument);
+        const auto& providedArgumentType = TypeChecker::GetType(scope, providedArgument.get());
         if (providedArgumentType == nullptr)
         {
             const auto& variableArgument = std::dynamic_pointer_cast<VariableAstNode>(providedArgument);
@@ -77,9 +69,9 @@ void MethodCallStatementTypeChecker::ValidateMethodCall(CompilerContext* compile
     }
 }
 
-std::shared_ptr<Symbol> MethodCallStatementTypeChecker::GetMethodSymbol(CompilerContext* compilerContext, const MethodAstNode& methodAstNode, const std::shared_ptr<MemberAccessAstNode>& memberAccessAstNode)
+std::shared_ptr<Symbol> MethodCallStatementTypeChecker::GetMethodSymbol(CompilerContext* compilerContext, const std::shared_ptr<Scope>& scope, const std::shared_ptr<MemberAccessAstNode>& memberAccessAstNode)
 {
-    auto symbol = methodAstNode.scope->Lookup(memberAccessAstNode->member);
+    auto symbol = scope->Lookup(memberAccessAstNode->member);
 
     if (symbol != nullptr)
         return symbol;
@@ -87,7 +79,7 @@ std::shared_ptr<Symbol> MethodCallStatementTypeChecker::GetMethodSymbol(Compiler
     if (memberAccessAstNode->object == nullptr)
         return nullptr;
 
-    symbol = GetMethodSymbol(compilerContext, methodAstNode, memberAccessAstNode->object);
+    symbol = GetMethodSymbol(compilerContext, scope, memberAccessAstNode->object);
 
     if (symbol == nullptr)
     {

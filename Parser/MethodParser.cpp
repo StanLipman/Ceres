@@ -49,7 +49,7 @@ std::shared_ptr<MethodAstNode> MethodParser::Parse() const
     if (Token rightParenToken; !parser->TryGetNextTokenOrError(TokenKind::rParen, rightParenToken))
         return nullptr;
 
-    const auto bodyAstNode = parser->bodyParser->ParseMethodBody();
+    const auto bodyAstNode = parser->bodyParser->ParseMethodBody(methodAstNode);
     if (bodyAstNode == nullptr)
         return nullptr;
 

@@ -5,6 +5,7 @@
 #include "BodyParser.h"
 #include "ConstellationParser.h"
 #include "DocumentParser.h"
+#include "ExpressionParser.h"
 #include "GalaxyParser.h"
 #include "LiteralValueParser.h"
 #include "MethodCallParser.h"
@@ -32,6 +33,7 @@ public:
     std::unique_ptr<LiteralValueParser> literalValueParser;
     std::unique_ptr<TransmitParser> transmitParser;
     std::unique_ptr<MethodCallParser> methodCallParser;
+    std::unique_ptr<ExpressionParser> expressionParser;
 
     explicit ParseManager(CompilerContext* compilerContext, const std::vector<Token>& tokens)
     {
@@ -47,6 +49,7 @@ public:
         this->literalValueParser = std::make_unique<LiteralValueParser>(this);
         this->transmitParser = std::make_unique<TransmitParser>(this);
         this->methodCallParser = std::make_unique<MethodCallParser>(this);
+        this->expressionParser = std::make_unique<ExpressionParser>(this);
     }
 
     std::shared_ptr<DocumentAstNode> GetDocumentAstNode()
@@ -68,6 +71,14 @@ public:
             return tokens.back();
 
         return tokens[currentTokenIndex];
+    }
+
+    Token PeekXForwardToken(uint amountForward)
+    {
+        if (tokens.size() < currentTokenIndex)
+            return tokens.back();
+
+        return tokens[currentTokenIndex + amountForward];
     }
 
     void BuildAst()
@@ -105,6 +116,20 @@ public:
             return false;
         }
 
+        return true;
+    }
+
+    bool TryGetNextTokenOnMatchOrSkip(const TokenKind expectedTokenKind, Token& outToken)
+    {
+        const Token nextToken = PeekNextToken();
+        if (nextToken.kind != expectedTokenKind)
+        {
+            outToken = EmptyToken;
+            return false;
+        }
+
+        outToken = GetNextToken();
+        assert(outToken.kind == expectedTokenKind);
         return true;
     }
 

@@ -148,4 +148,14 @@ public:
     {
         // Skip
     }
+
+    void visit(ExpressionAstNode& node) override
+    {
+        // Skip
+    }
+
+    void visit(AutoAstNode& node) override
+    {
+        // Skip
+    }
 };

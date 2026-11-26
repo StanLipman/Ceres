@@ -2,8 +2,10 @@
 #include "Models/Ast/DocumentAstNode.h"
 #include "Models/Ast/GalaxyAstNode.h"
 #include "Models/Ast/ArgumentAstNode.h"
+#include "Models/Ast/AutoAstNode.h"
 #include "Models/Ast/BodyAstNode.h"
 #include "Models/Ast/ConstellationAstNode.h"
+#include "Models/Ast/ExpressionAstNode.h"
 #include "Models/Ast/LiteralValueAstNode.h"
 #include "Models/Ast/MethodAstNode.h"
 #include "Models/Ast/MethodCallAstNode.h"
@@ -51,6 +53,7 @@ void PrintAstPass::visit(BodyAstNode& node)
     for (const auto& statement : node.statementAstNodes)
     {
         statement->accept(*this);
+        printf("\n");
     }
     currentDepth--;
 }
@@ -101,7 +104,6 @@ void PrintAstPass::visit(MethodAstNode& node)
 
     assert(node.bodyAstNode != nullptr);
     node.bodyAstNode->accept(*this);
-    printf("\n");
 }
 
 void PrintAstPass::visit(TypeAstNode& node)
@@ -119,8 +121,6 @@ void PrintAstPass::visit(TransmitAstNode& node)
 
     if (node.transmitValue != nullptr)
         node.transmitValue->accept(*this);
-
-    printf("\n");
 }
 
 void PrintAstPass::visit(LiteralValueAstNode& node)
@@ -223,7 +223,7 @@ void PrintAstPass::visit(MethodCallAstNode& node)
             printf(", ");
     }
 
-    printf(")\n");
+    printf(")");
 }
 
 void PrintAstPass::visit(MemberAccessAstNode& node)
@@ -234,4 +234,55 @@ void PrintAstPass::visit(MemberAccessAstNode& node)
         printf(".");
     }
     printf("%s", node.member.c_str());
+}
+
+void PrintAstPass::visit(ExpressionAstNode& node)
+{
+    for (size_t i = 0; i < currentDepth; i++)
+        printf("-");
+
+    const auto variableDeclarationAstNode = dynamic_cast<VariableDeclarationAstNode*>(&node);
+    if (variableDeclarationAstNode != nullptr)
+    {
+        assert(variableDeclarationAstNode->type != nullptr);
+
+        variableDeclarationAstNode->type->accept(*this);
+        printf(" %s", variableDeclarationAstNode->name.c_str());
+
+        if (variableDeclarationAstNode->initializer != nullptr)
+        {
+            const int tempDepth = currentDepth;
+            currentDepth = 0;
+            printf(" = ");
+            variableDeclarationAstNode->initializer->accept(*this);
+            currentDepth = tempDepth;
+        }
+        return;
+    }
+
+    const auto assignExpressionAstNode = dynamic_cast<AssignExpressionAstNode*>(&node);
+    if (assignExpressionAstNode != nullptr)
+    {
+        assert(assignExpressionAstNode->token != EmptyToken);
+        assert(assignExpressionAstNode->target != nullptr);
+        assert(assignExpressionAstNode->value != nullptr);
+
+        assignExpressionAstNode->target->accept(*this);
+
+        printf(" = ");
+
+        const int tempDepth = currentDepth;
+        currentDepth = 0;
+        assignExpressionAstNode->value->accept(*this);
+        currentDepth = tempDepth;
+
+        return;
+    }
+
+    assert(false);
+}
+
+void PrintAstPass::visit(AutoAstNode& node)
+{
+    printf("%s", GetTokenKindText(node.token.kind).c_str());
 }
