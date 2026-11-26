@@ -1,10 +1,19 @@
 #include "MethodHasTransmitStatementChecker.h"
 
 #include "Models/Ast/TransmitAstNode.h"
+#include "Passes/SemanticAnalyzer.h"
+#include "Passes/TypeChecker.h"
 
 void MethodHasTransmitStatementChecker::ValidateMethod(CompilerContext* compilerContext, const MethodAstNode& methodAstNode)
 {
-    if (methodAstNode.returnTypeAstNode == nullptr)
+    const auto& returnTypeType = TypeChecker::GetType(methodAstNode.scope, methodAstNode.returnTypeAstNode.get());
+    assert(returnTypeType != nullptr);
+
+    const auto& symbol = methodAstNode.scope->Lookup("vacuum");
+    const auto& vacuumSymbol = std::dynamic_pointer_cast<ConstellationSymbol>(symbol);
+    assert(vacuumSymbol != nullptr);
+
+    if (returnTypeType == vacuumSymbol->type)
         return;
 
     bool processedTransmitStatement = false;

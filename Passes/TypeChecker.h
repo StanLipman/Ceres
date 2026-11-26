@@ -145,9 +145,22 @@ public:
         if (variableDeclarationAstNode != nullptr)
         {
             variableDeclarationAstNode->type->accept(*this);
-            variableDeclarationAstNode->assignmentExpression->accept(*this);
+            assert(variableDeclarationAstNode->initializer != nullptr);
+            variableDeclarationAstNode->initializer->accept(*this);
 
             ExpressionStatementTypeChecker::ValidateVariableDeclarationStatement(compilerContext, currentScope, *variableDeclarationAstNode);
+        }
+
+        const auto* assignmentExpressionAstNode = dynamic_cast<AssignExpressionAstNode*>(&node);
+        if (assignmentExpressionAstNode != nullptr)
+        {
+            assert(assignmentExpressionAstNode->target != nullptr);
+            assert(assignmentExpressionAstNode->value != nullptr);
+
+            assignmentExpressionAstNode->target->accept(*this);
+            assignmentExpressionAstNode->value->accept(*this);
+
+            ExpressionStatementTypeChecker::ValidateAssignStatement(compilerContext, currentScope, *assignmentExpressionAstNode);
         }
     }
 

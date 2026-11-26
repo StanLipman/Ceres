@@ -40,7 +40,7 @@ public:
     }
 
 private:
-    void CreatePrimitiveTypes()
+    void CreatePrimitiveTypes() const
     {
         MakePrimitiveType("vacuum", Type::TypeKind::vacuum);
         MakePrimitiveType("bool", Type::TypeKind::_bool);
@@ -55,9 +55,9 @@ private:
         MakePrimitiveType("long", Type::TypeKind::_long);
         MakePrimitiveType("ulong", Type::TypeKind::_ulong);
         MakePrimitiveType("string", Type::TypeKind::string);
-        }
+    }
 
-    void MakePrimitiveType(const std::string& name, const Type::TypeKind kind)
+    void MakePrimitiveType(const std::string& name, const Type::TypeKind kind) const
     {
         const auto symbol = std::make_shared<ConstellationSymbol>();
         symbol->name = name;

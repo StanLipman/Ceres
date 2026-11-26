@@ -5,7 +5,7 @@
 #include "Models/Ast/AutoAstNode.h"
 #include "Models/Ast/VariableAstNode.h"
 
-std::shared_ptr<ExpressionAstNode> ExpressionParser::ParseExpression() const
+std::shared_ptr<ExpressionAstNode> ExpressionParser::ParseVariableDeclarationExpression() const
 {
     std::shared_ptr<AstNode> typeOrAutoAstNode;
     if (Token typeIdentifierToken; parser->TryGetNextTokenOnMatchOrSkip(TokenKind::identifier, typeIdentifierToken))
@@ -28,7 +28,6 @@ std::shared_ptr<ExpressionAstNode> ExpressionParser::ParseExpression() const
         typeOrAutoAstNode = autoAstNode;
     }
 
-
     Token variableNameIdentifierToken;
     if (!parser->TryGetNextTokenOrError(TokenKind::identifier, variableNameIdentifierToken))
         return nullptr;
@@ -40,13 +39,45 @@ std::shared_ptr<ExpressionAstNode> ExpressionParser::ParseExpression() const
 
     Token assignToken;
     if (!parser->TryGetNextTokenOrError(TokenKind::assign, assignToken))
+        return nullptr; // TODO: Add support for uninitialized vars that get assigned later
+
+    variableDeclarationAstNode->initializer = ParseAssignValueAstNode();
+    assert(variableDeclarationAstNode->initializer !=  nullptr);
+
+    if (!parser->TryConsumeOrError(TokenKind::semicolon))
         return nullptr;
 
-    const auto assignExpressionAstNode = std::make_shared<AssignExpressionAstNode>();
-    assignExpressionAstNode->token = assignToken;
+    return variableDeclarationAstNode;
+}
 
-    variableDeclarationAstNode->assignmentExpression = assignExpressionAstNode;
+std::shared_ptr<ExpressionAstNode> ExpressionParser::ParseVariableAssignmentExpression() const
+{
+    Token variableNameIdentifierToken;
+    if (!parser->TryGetNextTokenOrError(TokenKind::identifier, variableNameIdentifierToken))
+        return nullptr;
 
+    if (!parser->TryConsumeOrError(TokenKind::assign))
+        return nullptr;
+
+    auto assignAstNode = std::make_shared<AssignExpressionAstNode>();
+    assignAstNode->token = variableNameIdentifierToken;
+
+    const auto variableAstNode = std::make_shared<VariableAstNode>();
+    variableAstNode->name = variableNameIdentifierToken.text;
+    variableAstNode->name = variableNameIdentifierToken.text;
+
+    assignAstNode->target = variableAstNode;
+    assignAstNode->value = ParseAssignValueAstNode();
+    assert(assignAstNode->value != nullptr);
+
+    if (!parser->TryConsumeOrError(TokenKind::semicolon))
+        return nullptr;
+
+    return assignAstNode;
+}
+
+std::shared_ptr<AstNode> ExpressionParser::ParseAssignValueAstNode() const
+{
     if (parser->PeekNextToken().kind == TokenKind::identifier)
     {
         if (parser->PeekXForwardToken(1).kind == TokenKind::semicolon) // If an identifier is followed by an semicolon it is a variable
@@ -56,32 +87,12 @@ std::shared_ptr<ExpressionAstNode> ExpressionParser::ParseExpression() const
             variableAstNode->token = variableIdentifierToken;
             variableAstNode->name = variableIdentifierToken.text;
 
-            assignExpressionAstNode->assignee = variableAstNode;
-
-            auto result = parser->TryConsumeOrError(TokenKind::semicolon);
-            assert(result);
-
-            return variableDeclarationAstNode;
+            return variableAstNode;
         }
 
-        const auto& methodCallAstNode = parser->methodCallParser->Parse();
-        if (methodCallAstNode != nullptr)
-        {
-            assignExpressionAstNode->assignee = methodCallAstNode;
-            return variableDeclarationAstNode; // The semicolon is handled by the method call parsing
-        }
-    }
-    else
-    {
-        assert(IsLiteralValueTokenKind(parser->PeekNextToken().kind));
-
-        const auto literalValueAstNode = parser->literalValueParser->Parse();
-        if (literalValueAstNode != nullptr)
-            assignExpressionAstNode->assignee = literalValueAstNode;
+        return parser->methodCallParser->ParseExpression();
     }
 
-    if (!parser->TryConsumeOrError(TokenKind::semicolon))
-        return nullptr;
-
-    return variableDeclarationAstNode;
+    assert(IsLiteralValueTokenKind(parser->PeekNextToken().kind));
+    return parser->literalValueParser->Parse();
 }

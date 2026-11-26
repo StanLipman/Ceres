@@ -12,15 +12,19 @@ void MethodCallStatementTypeChecker::ValidateMethodCall(CompilerContext* compile
     assert(calleeAstNode != nullptr);
 
     const auto& symbol = GetMethodSymbol(compilerContext, scope, calleeAstNode);
-    assert(symbol != nullptr);
+    if (symbol == nullptr)
+    {
+        const std::string formattedMessage = "Method '" + calleeAstNode->member + "' does not exist.";
+        compilerContext->compilationErrors.emplace_back(formattedMessage, methodCallAstNode.token.location);
+        return;
+    }
 
     const auto& callingMethodSymbol = std::dynamic_pointer_cast<MethodSymbol>(symbol);
 
     if (callingMethodSymbol == nullptr)
     {
         const std::string formattedMessage = "Method '" + calleeAstNode->member + "' does not exist.";
-        const SourceLocation location = methodCallAstNode.token.location;
-        compilerContext->compilationErrors.emplace_back(formattedMessage, location);
+        compilerContext->compilationErrors.emplace_back(formattedMessage, methodCallAstNode.token.location);
         return;
     }
 

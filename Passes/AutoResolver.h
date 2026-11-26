@@ -14,10 +14,9 @@ public:
     static std::shared_ptr<Type> ResolveType(const std::shared_ptr<Scope>& scope, const VariableDeclarationAstNode& variableDeclarationAstNode)
     {
         assert(std::dynamic_pointer_cast<AutoAstNode>(variableDeclarationAstNode.type) != nullptr);
-        assert(variableDeclarationAstNode.assignmentExpression != nullptr);
-        assert(variableDeclarationAstNode.assignmentExpression->assignee != nullptr);
+        assert(variableDeclarationAstNode.initializer != nullptr);
 
-        const auto& typeForAuto = ResolveTypeFromExpression(nullptr, scope, *variableDeclarationAstNode.assignmentExpression->assignee);
+        const auto& typeForAuto = ResolveTypeFromExpression(nullptr, scope, *variableDeclarationAstNode.initializer);
         assert(typeForAuto != nullptr);
         return typeForAuto;
     }

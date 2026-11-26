@@ -11,6 +11,7 @@ galaxy Samples
         universal eternal string Str()
         {
             auto test = "autoType";
+            test = "reassign";
             Test2(1, test);
             transmit test;
         }
@@ -34,7 +35,7 @@ galaxy Samples
 
         universal eternal Program Test3(int input, string str)
         {
-            int fromReturn = Testers.TestMethod(str);
+            int fromReturn = Testers.TestMethod(input);
             transmit Program;
         }
 
@@ -48,6 +49,28 @@ galaxy Samples
         universal eternal int ReturnIntArgument(int input)
         {
             transmit input;
+        }
+
+        universal eternal vacuum VariableTests(Program myProgram, int myInt, string myString)
+        {
+            string stringVar = "myStringVar";
+            string stringVarFromArg = myString;
+            stringVar = stringVarFromArg;
+            stringVar = myString;
+            stringVar = stringVar;
+            stringVar = Str();
+
+            int intVar = 1234;
+            int intVarFromArg = myInt;
+            intVar = intVarFromArg;
+            intVar = myInt;
+            intVar = Testers.TestMethod(intVarFromArg);
+
+            Program programVar = Program;
+            Program programFromArg = myProgram;
+            programVar = programFromArg;
+            programVar = myProgram;
+            programVar = Test3(intVar, stringVar);
         }
     }
 

@@ -13,5 +13,7 @@ private:
 public:
     explicit ExpressionParser(ParseManager* parser): parser(parser) {}
 
-    [[nodiscard]] std::shared_ptr<ExpressionAstNode> ParseExpression() const;
+    [[nodiscard]] std::shared_ptr<ExpressionAstNode> ParseVariableDeclarationExpression() const;
+    [[nodiscard]] std::shared_ptr<ExpressionAstNode> ParseVariableAssignmentExpression() const;
+    [[nodiscard]] std::shared_ptr<AstNode> ParseAssignValueAstNode() const;
 };

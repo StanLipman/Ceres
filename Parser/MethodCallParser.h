@@ -12,5 +12,6 @@ public:
     explicit MethodCallParser(ParseManager* parser) : parser(parser) {  }
 
     [[nodiscard]] std::shared_ptr<MethodCallAstNode> Parse() const;
+    [[nodiscard]] std::shared_ptr<MethodCallAstNode> ParseExpression() const;
 };
 

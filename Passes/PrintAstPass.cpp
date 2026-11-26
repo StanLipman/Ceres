@@ -53,6 +53,7 @@ void PrintAstPass::visit(BodyAstNode& node)
     for (const auto& statement : node.statementAstNodes)
     {
         statement->accept(*this);
+        printf("\n");
     }
     currentDepth--;
 }
@@ -103,7 +104,6 @@ void PrintAstPass::visit(MethodAstNode& node)
 
     assert(node.bodyAstNode != nullptr);
     node.bodyAstNode->accept(*this);
-    printf("\n");
 }
 
 void PrintAstPass::visit(TypeAstNode& node)
@@ -121,8 +121,6 @@ void PrintAstPass::visit(TransmitAstNode& node)
 
     if (node.transmitValue != nullptr)
         node.transmitValue->accept(*this);
-
-    printf("\n");
 }
 
 void PrintAstPass::visit(LiteralValueAstNode& node)
@@ -225,7 +223,7 @@ void PrintAstPass::visit(MethodCallAstNode& node)
             printf(", ");
     }
 
-    printf(")\n");
+    printf(")");
 }
 
 void PrintAstPass::visit(MemberAccessAstNode& node)
@@ -240,19 +238,25 @@ void PrintAstPass::visit(MemberAccessAstNode& node)
 
 void PrintAstPass::visit(ExpressionAstNode& node)
 {
+    for (size_t i = 0; i < currentDepth; i++)
+        printf("-");
+
     const auto variableDeclarationAstNode = dynamic_cast<VariableDeclarationAstNode*>(&node);
     if (variableDeclarationAstNode != nullptr)
     {
-        for (size_t i = 0; i < currentDepth; i++)
-            printf("-");
-
         assert(variableDeclarationAstNode->type != nullptr);
-        assert(variableDeclarationAstNode->assignmentExpression != nullptr);
 
         variableDeclarationAstNode->type->accept(*this);
         printf(" %s", variableDeclarationAstNode->name.c_str());
 
-        variableDeclarationAstNode->assignmentExpression->accept(*this);
+        if (variableDeclarationAstNode->initializer != nullptr)
+        {
+            const int tempDepth = currentDepth;
+            currentDepth = 0;
+            printf(" = ");
+            variableDeclarationAstNode->initializer->accept(*this);
+            currentDepth = tempDepth;
+        }
         return;
     }
 
@@ -260,21 +264,18 @@ void PrintAstPass::visit(ExpressionAstNode& node)
     if (assignExpressionAstNode != nullptr)
     {
         assert(assignExpressionAstNode->token != EmptyToken);
-        assert(assignExpressionAstNode->assignee != nullptr);
+        assert(assignExpressionAstNode->target != nullptr);
+        assert(assignExpressionAstNode->value != nullptr);
+
+        assignExpressionAstNode->target->accept(*this);
+
         printf(" = ");
 
-        if (const auto* methodCallAstNode = dynamic_cast<MethodCallAstNode*>(assignExpressionAstNode->assignee.get()); methodCallAstNode != nullptr)
-        {
-            const int tempDepth = currentDepth;
-            currentDepth = 0;
-            assignExpressionAstNode->assignee->accept(*this);
-            currentDepth = tempDepth;
-        }
-        else
-        {
-            assignExpressionAstNode->assignee->accept(*this);
-            printf("\n");
-        }
+        const int tempDepth = currentDepth;
+        currentDepth = 0;
+        assignExpressionAstNode->value->accept(*this);
+        currentDepth = tempDepth;
+
         return;
     }
 

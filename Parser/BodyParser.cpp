@@ -97,7 +97,7 @@ std::shared_ptr<BodyAstNode> BodyParser::ParseMethodBody(const std::shared_ptr<M
             const Token nextToken = parser->PeekXForwardToken(1);
             if (nextToken.kind == TokenKind::identifier)
             {
-                const auto variableDeclarationAstNode = parser->expressionParser->ParseExpression();
+                const auto variableDeclarationAstNode = parser->expressionParser->ParseVariableDeclarationExpression();
                 if (variableDeclarationAstNode != nullptr)
                     bodyAstNode->statementAstNodes.push_back(variableDeclarationAstNode);
             }
@@ -107,9 +107,16 @@ std::shared_ptr<BodyAstNode> BodyParser::ParseMethodBody(const std::shared_ptr<M
                 if (methodCallAstNode != nullptr)
                     bodyAstNode->statementAstNodes.push_back(methodCallAstNode);
             }
+            else if (nextToken.kind == TokenKind::assign)
+            {
+                const auto variablesAssignmentAstNode = parser->expressionParser->ParseVariableAssignmentExpression();
+                if (variablesAssignmentAstNode != nullptr)
+                    bodyAstNode->statementAstNodes.push_back(variablesAssignmentAstNode);
+            }
             else
             {
                 parser->GiveErrorByMessage(peekedToken, "Unexpected token while parsing method");
+                assert(false);
                 break;
             }
         }

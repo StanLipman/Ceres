@@ -6,6 +6,16 @@
 
 std::shared_ptr<MethodCallAstNode> MethodCallParser::Parse() const
 {
+    const auto& methodCallAstNode = ParseExpression();
+
+    if (!parser->TryConsumeOrError(TokenKind::semicolon))
+        return nullptr;
+
+    return methodCallAstNode;
+}
+
+std::shared_ptr<MethodCallAstNode> MethodCallParser::ParseExpression() const
+{
     Token out_peekedToken = parser->PeekNextToken();
     std::shared_ptr<MemberAccessAstNode> lastMemberAccessAstNode;
 
@@ -74,9 +84,6 @@ std::shared_ptr<MethodCallAstNode> MethodCallParser::Parse() const
     }
 
     if (!parser->TryGetNextTokenOrError(TokenKind::rParen, rParenToken))
-        return nullptr;
-
-    if (!parser->TryConsumeOrError(TokenKind::semicolon))
         return nullptr;
 
     return methodCallAstNode;
